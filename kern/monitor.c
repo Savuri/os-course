@@ -19,6 +19,7 @@
 int mon_help(int argc, char **argv, struct Trapframe *tf);
 int mon_kerninfo(int argc, char **argv, struct Trapframe *tf);
 int mon_backtrace(int argc, char **argv, struct Trapframe *tf);
+int mon_mycmd(int argc, char **argv, struct Trapframe *tf);
 
 struct Command {
     const char *name;
@@ -31,6 +32,7 @@ static struct Command commands[] = {
         {"help", "Display this list of commands", mon_help},
         {"kerninfo", "Display information about the kernel", mon_kerninfo},
         {"backtrace", "Print stack backtrace", mon_backtrace},
+        {"mycmd", "Display predefined text", mon_mycmd},
 };
 #define NCOMMANDS (sizeof(commands) / sizeof(commands[0]))
 
@@ -60,6 +62,37 @@ mon_kerninfo(int argc, char **argv, struct Trapframe *tf) {
 int
 mon_backtrace(int argc, char **argv, struct Trapframe *tf) {
     // LAB 2: Your code here
+    
+    uint64_t rbp = read_rbp();
+    struct Ripdebuginfo debug_info;
+
+    cprintf("Stack backtrace:\n");
+
+    while (rbp != 0) {
+        uint64_t rip = *((uint64_t *) rbp + 1);
+
+        cprintf("  rbp %016llx  rip %016llx\n", (long long unsigned) rbp, (long long unsigned) rip);
+
+        int res = debuginfo_rip(rip, &debug_info);
+
+        if (res < 0) {
+            cprintf("Debug info was not found.\n");
+        } else {
+            if (debug_info.rip_fn_namelen == sizeof(debug_info.rip_fn_name)) 
+                cprintf("    %s:%d: %256s+%lu\n", debug_info.rip_file, debug_info.rip_line, debug_info.rip_fn_name, rip - debug_info.rip_fn_addr);
+            else 
+                cprintf("    %s:%d: %s+%lu\n", debug_info.rip_file, debug_info.rip_line, debug_info.rip_fn_name, rip - debug_info.rip_fn_addr);
+        }
+
+        rbp = *((uint64_t *) rbp);
+    }
+
+    return 0;
+}
+
+int 
+mon_mycmd(int argc, char **argv, struct Trapframe *tf) {
+    cprintf("This text was predefined. Mycmd was here\n");
 
     return 0;
 }
