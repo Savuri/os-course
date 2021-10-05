@@ -113,7 +113,11 @@ InitGraphics (
   //
   // Hint: Use GetMode/SetMode functions.
   //
-
+  Status = GraphicsOutput->SetMode(GraphicsOutput, 1);
+  if (EFI_ERROR(Status)) {
+    DEBUG ((DEBUG_ERROR, "Cannot change graphics mode - %r\n", Status));
+    return Status;
+  }
 
   //
   // Fill screen with black.
@@ -976,7 +980,7 @@ UefiMain (
   EFI_EVENT          VirtualNotifyEvent;
   UINTN              EntryPoint;
   VOID               *GateData;
-
+/**
 #if 1 ///< Uncomment to await debugging
   volatile BOOLEAN   Connected;
   DEBUG ((DEBUG_INFO, "JOS: Awaiting debugger connection\n"));
@@ -986,7 +990,7 @@ UefiMain (
     ;
   }
 #endif
-
+**/
   Status = gRT->GetTime (&Now, NULL);
   if (EFI_ERROR (Status)) {
     DEBUG ((DEBUG_ERROR, "JOS: Error when getting time - %r\n", Status));
