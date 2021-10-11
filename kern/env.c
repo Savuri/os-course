@@ -90,6 +90,17 @@ env_init(void) {
 
     // LAB 3: Your code here
 
+    for (int_fast32_t i = 0; i < NENV - 1; ++i) {
+        envs[i].env_status = ENV_FREE;
+        envs[i].env_id = 0;
+        envs[i].env_link = &envs[i + 1];
+    }
+
+    envs[NENV - 1].env_status = ENV_FREE;
+    envs[NENV - 1].env_id = 0;
+    envs[NENV - 1].env_link = NULL;
+
+    env_free_list = envs;
 }
 
 /* Allocates and initializes a new environment.
@@ -146,7 +157,10 @@ env_alloc(struct Env **newenv_store, envid_t parent_id, enum EnvType type) {
     env->env_tf.tf_cs = GD_KT;
 
     // LAB 3: Your code here:
-    //static uintptr_t stack_top = 0x2000000;
+
+    static uintptr_t stack_top = 0x2000000;
+    env->env_tf.tf_rsp = stack_top - ENVX(env->env_id) * 2 * PAGE_SIZE;
+
 #else
     env->env_tf.tf_ds = GD_UD | 3;
     env->env_tf.tf_es = GD_UD | 3;
@@ -173,6 +187,51 @@ bind_functions(struct Env *env, uint8_t *binary, size_t size, uintptr_t image_st
     // LAB 3: Your code here:
 
     /* NOTE: find_function from kdebug.c should be used */
+    struct Elf *elf = (struct Elf *)binary;
+    struct Secthdr *sh = (struct Secthdr *)(binary + elf->e_shoff);
+    const char *shstrtab = (char *)binary + sh[elf->e_shstrndx].sh_offset; // section header names storage
+    const char *strtab_address = NULL;
+
+    // Find string table
+
+    for (size_t i = 0; i < elf->e_shnum; i++) {
+        if (sh[i].sh_type == ELF_SHT_STRTAB && !strcmp(".strtab", shstrtab + sh[i].sh_name)) {
+            //.strtab - This section holds strings, most commonly the strings that represent
+            // the names associated with symbol table entries.
+            // i == strtab header index in sh
+
+            strtab_address = (char *)binary + sh[i].sh_offset; // string table address
+            break;
+        }
+    }
+
+
+    for (size_t i = 0; i < elf->e_shnum; i++) {
+        if (sh[i].sh_type == ELF_SHT_SYMTAB) {
+            // Currently, an object file may have only one section of each type (SHT_SYMTAB, SHT_DYNSYM),
+            // but this restriction may be relaxed in the future
+            struct Elf64_Sym *syms = (struct Elf64_Sym *)(binary + sh[i].sh_offset); // symbol table
+            size_t nsyms = sh[i].sh_size / sizeof(*syms);
+
+            for (size_t j = 0; j < nsyms; j++) {
+                if (ELF64_ST_BIND(syms[j].st_info) == STB_GLOBAL) {      // Is the sym global { // Is the symbol associated with a data object
+                    const char *name = &strtab_address[syms[j].st_name]; // get name of (probably) function
+                    uintptr_t addr = find_function(name);                // attempt to find address by name
+
+                    if (addr) {
+                        // if was found
+//                        cprintf("%s :: %lx\n", name, addr);
+//                        Почему все функции это данные вопрос открытый... STT_OBJECT - The symbol is associated with a data object.
+//                        cprintf("SOME info about sym %lu %u. KAK %u\n", j, ELF64_ST_TYPE(syms[j].st_info), ELF64_ST_BIND(syms[j].st_info));
+
+                        memcpy((void *)syms[j].st_value, &addr, sizeof(addr));
+                    }
+                }
+            }
+        }
+    }
+
+
 
     return 0;
 }
@@ -221,6 +280,34 @@ static int
 load_icode(struct Env *env, uint8_t *binary, size_t size) {
     // LAB 3: Your code here
 
+    struct Elf *elf = (struct Elf *)binary;
+
+    if (elf->e_magic != ELF_MAGIC) {
+        cprintf("Attempt to execute not Elf file\n");
+        return -E_INVALID_EXE;
+    }
+
+    struct Proghdr *ph = (struct Proghdr *)(binary + elf->e_phoff);
+
+    for (UINT16 i = 0; i < elf->e_phnum; ++i) {
+        if (ph[i].p_type == ELF_PROG_LOAD) {
+            // src = binary + ph[i].p_offset
+            // dst = ph[i].p_va;
+            // cpysize = ph[i].p_filesz;
+            // allsize = ph[i].p_memsz;
+            // The file size can not be larger than the memory size
+
+            memcpy((void *)ph[i].p_va, binary + ph[i].p_offset, ph[i].p_filesz);
+
+            // zero rest
+            memset((void *)(ph[i].p_va + ph[i].p_filesz), 0, ph[i].p_memsz - ph[i].p_filesz);
+        }
+    }
+
+    env->env_tf.tf_rip = elf->e_entry;
+
+    bind_functions(env, binary, size, (uintptr_t) binary, (uintptr_t) (binary + size));
+
     return 0;
 }
 
@@ -233,7 +320,20 @@ load_icode(struct Env *env, uint8_t *binary, size_t size) {
 void
 env_create(uint8_t *binary, size_t size, enum EnvType type) {
     // LAB 3: Your code here
+    struct Env *env;
+    int ret;
 
+    ret = env_alloc(&env, 0, type);
+
+    if (ret < 0) {
+        panic("env_alloc: %i", -ret);
+    }
+
+    ret = load_icode(env, binary, size);
+
+    if (ret < 0) {
+        panic("load_icode: %i", -ret);
+    }
 }
 
 
@@ -263,6 +363,10 @@ env_destroy(struct Env *env) {
 
     // LAB 3: Your code here
 
+    env_free(env);
+    if (env == curenv) {
+        sched_yield(); // change env
+    }
 }
 
 #ifdef CONFIG_KSPACE
@@ -333,6 +437,11 @@ env_pop_tf(struct Trapframe *tf) {
  *       3. Set its status to ENV_RUNNING,
  *       4. Update its 'env_runs' counter,
  * Step 2: Use env_pop_tf() to restore the environment's
+ *       registers and starting execution of process. *          what other states it can be in),
+ *       2. Set 'curenv' to the new environment,
+ *       3. Set its status to ENV_RUNNING,
+ *       4. Update its 'env_runs' counter,
+ * Step 2: Use env_pop_tf() to restore the environment's
  *       registers and starting execution of process.
 
  * Hints:
@@ -354,6 +463,20 @@ env_run(struct Env *env) {
     }
 
     // LAB 3: Your code here
+    if (curenv) {
+        if (curenv->env_status == ENV_RUNNING) {
+            curenv->env_status = ENV_RUNNABLE;
+        } else if (curenv->env_status == ENV_FREE) {
 
-    while(1) {}
+        } else {
+            cprintf("env_run: unexpected: %u\n", curenv->env_status);
+        }
+    }
+
+    curenv = env;
+    curenv->env_status = ENV_RUNNING;
+    curenv->env_runs++;
+    env_pop_tf(&curenv->env_tf);
+
+    while (1) {}
 }

@@ -96,5 +96,34 @@ find_function(const char *const fname) {
 
     // LAB 3: Your code here:
 
+    struct map_fun_name_to_addr {
+        const char *name;
+        uintptr_t addr;
+    };
+
+    struct map_fun_name_to_addr map[] =
+    {
+        {"sys_exit", (uintptr_t) sys_exit},
+        { "sys_yield", (uintptr_t)sys_yield },
+    };
+
+    for (size_t i = 0; i < sizeof(map) / sizeof(*map); i++) {
+        if (!strcmp(map[i].name, fname)) {
+            return map[i].addr;
+        }
+    }
+
+    struct Dwarf_Addrs addrs;
+    load_kernel_dwarf_info(&addrs);
+    uintptr_t offset = 0;
+
+    if (!address_by_fname(&addrs, fname, &offset) && offset) {
+        return offset;
+    }
+
+    if (!naive_address_by_fname(&addrs, fname, &offset)) {
+        return offset;
+    }
+
     return 0;
 }
