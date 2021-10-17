@@ -13,6 +13,7 @@
 #include <kern/kdebug.h>
 #include <kern/env.h>
 #include <kern/trap.h>
+#include <kern/kclock.h>
 
 #define WHITESPACE "\t\r\n "
 #define MAXARGS    16
@@ -109,6 +110,22 @@ mon_dumpcmos(int argc, char **argv, struct Trapframe *tf) {
     // Make sure you understand the values read.
     // Hint: Use cmos_read8()/cmos_write8() functions.
     // LAB 4: Your code here
+
+
+
+    for (uint8_t i = 0; i < 128; ++i) {
+        // fig 10. 14 - bytes for clock, 114 - storage registers
+        // 0x80 == 128
+        if (i % 16 == 0) {
+            cprintf("\n%02x: ", i);
+        }
+
+        cprintf("%02x ", cmos_read8(i));
+    }
+
+    cprintf("\n");
+
+
 
     return 0;
 }
