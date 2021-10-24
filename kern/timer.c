@@ -72,6 +72,31 @@ acpi_enable(void) {
         ;
 }
 
+int is_rsdp_check_sum_correct(uint8_t *pa, size_t length) {
+    // Before the RSDP is relied upon you should check that the checksum is valid.
+    // For ACPI 1.0 (the first structure) you add up every byte in the structure and make sure the lowest byte of the result is equal to zero.
+    // For ACPI 2.0 and later you'd do exactly the same thing for the original (ACPI 1.0) part of the second structure, and then do it again for the fields that are part of the ACPI 2.0 extension.
+
+    uint8_t res = 0;
+    for (size_t i = 0; i < length; ++i) {
+        res += pa[i];
+    }
+
+    return res == 0;
+}
+
+int is_header_check_sum_correct(ACPISDTHeader *tableHeader)
+{
+    unsigned char sum = 0;
+
+    for (int i = 0; i < tableHeader->Length; ++i)
+    {
+        sum += ((uint8_t *) tableHeader)[i];
+    }
+
+    return sum == 0;
+}
+
 static void *
 acpi_find_table(const char *sign) {
     /*
@@ -88,6 +113,49 @@ acpi_find_table(const char *sign) {
      */
 
     // LAB 5: Your code here
+    static RSDT *rsdt = NULL;
+    static size_t entry_elem_size;
+
+    if (rsdt == NULL) {
+        // find rsdt (extened rsdt == esdt)
+        RSDP *rsdp = mmio_map_region(uefi_lp->ACPIRoot, sizeof(rsdp));
+        // It was map for ACPI version > 1.0 (could have been overpowered map)
+
+
+        // ACPI 1.0
+        // size of struct is 20 bytes (In ACPI 1.0 there is no field length)
+        assert(is_rsdp_check_sum_correct((uint8_t *)rsdp, 20));
+        entry_elem_size = 4;
+        uintptr_t rsdt_pa = rsdp->RsdtAddress;
+
+        if (rsdp->Revision != 0) {
+            // ACPI > 1.0
+            assert(is_rsdp_check_sum_correct((uint8_t *)rsdp, rsdp->Length));
+            entry_elem_size = 8;
+            rsdt_pa = rsdp->XsdtAddress;
+        }
+
+        rsdt = mmio_map_region(rsdt_pa, sizeof(RSDT));
+        assert(is_header_check_sum_correct(&rsdt->h));
+        rsdt = mmio_map_region(rsdt_pa, rsdt->h.Length);
+    }
+
+    int entries_cnt = (rsdt->h.Length - sizeof(RSDT)) / entry_elem_size;
+
+    for (int i = 0; i < entries_cnt; ++i) {
+        uintptr_t addr;
+        memcpy(&addr, (uint8_t *)rsdt->PointerToOtherSDT + i * entry_elem_size, entry_elem_size);
+
+        ACPISDTHeader *h = (ACPISDTHeader *)mmio_map_region(addr, sizeof(ACPISDTHeader));
+        h = mmio_map_region(addr, h->Length);
+
+        assert(is_header_check_sum_correct(h));
+
+        if (!strncmp(sign, h->Signature, sizeof(h->Signature))) {
+            return h;
+        }
+    }
+
 
     return NULL;
 }
@@ -102,6 +170,10 @@ get_fadt(void) {
 
     static FADT *kfadt;
 
+    if (!kfadt) {
+        kfadt = acpi_find_table("FACP");
+    }
+
     return kfadt;
 }
 
@@ -112,6 +184,10 @@ get_hpet(void) {
     // (use acpi_find_table)
 
     static HPET *khpet;
+
+    if (!khpet) {
+        khpet = (HPET *)acpi_find_table("HPET");
+    }
 
     return khpet;
 }
@@ -213,12 +289,23 @@ hpet_get_main_cnt(void) {
 void
 hpet_enable_interrupts_tim0(void) {
     // LAB 5: Your code here
-
+    hpetReg->GEN_CONF |= HPET_LEG_RT_CNF; // Enable LegacyReplacement Route
+    hpetReg->TIM0_CONF |= HPET_TN_INT_ENB_CNF; // enable timer to cause an interrupt when the timer events fires
+    hpetReg->TIM0_CONF |= HPET_TN_TYPE_CNF; // Writing a 1 to this bit enables the timer to generate a periodic interrupt.
+    hpetReg->TIM0_CONF |= HPET_TN_VAL_SET_CNF; // By writing this bit to a 1, the software is then allowed to directly set a periodic timer’s accumulator
+    hpetReg->TIM0_COMP = Peta / 2 / hpetFemto; // period of interrupt = 0.5 seconds
+    pic_irq_unmask(IRQ_TIMER);
 }
 
 void
 hpet_enable_interrupts_tim1(void) {
     // LAB 5: Your code here
+    hpetReg->GEN_CONF |= HPET_LEG_RT_CNF; // Enable LegacyReplacement Route
+    hpetReg->TIM1_CONF |= HPET_TN_INT_ENB_CNF; // enable timer to cause an interrupt when the timer events fires
+    hpetReg->TIM1_CONF |= HPET_TN_TYPE_CNF; // Writing a 1 to this bit enables the timer to generate a periodic interrupt.
+    hpetReg->TIM1_CONF |= HPET_TN_VAL_SET_CNF; // By writing this bit to a 1, the software is then allowed to directly set a periodic timer’s accumulator
+    hpetReg->TIM1_COMP = 3 * Peta / 2 / hpetFemto; // period of interrupt = 1.5 seconds
+    pic_irq_unmask(IRQ_CLOCK);
 }
 
 void
@@ -233,12 +320,24 @@ hpet_handle_interrupts_tim1(void) {
 
 /* Calculate CPU frequency in Hz with the help with HPET timer.
  * HINT Use hpet_get_main_cnt function and do not forget about
- * about pause instruction. */
+ * pause instruction. */
 uint64_t
 hpet_cpu_frequency(void) {
-    static uint64_t cpu_freq;
+    static uint64_t cpu_freq = 0;
 
-    // LAB 5: Your code here
+    if (cpu_freq) {
+        return cpu_freq;
+    }
+
+    const uint64_t part_of_second = 100;
+    const uint64_t timer_tic = hpetFreq / part_of_second;
+    uint64_t cnt_start = hpet_get_main_cnt();
+    uint64_t tsc_start = read_tsc();
+
+    while (hpet_get_main_cnt() - cnt_start < timer_tic) {
+        asm("pause");
+    }
+    cpu_freq = (read_tsc() - tsc_start) * part_of_second;
 
     return cpu_freq;
 }
@@ -254,9 +353,34 @@ pmtimer_get_timeval(void) {
  *      can be 24-bit or 32-bit. */
 uint64_t
 pmtimer_cpu_frequency(void) {
-    static uint64_t cpu_freq;
+    static uint64_t cpu_freq = 0;
 
     // LAB 5: Your code here
+
+    if (cpu_freq) {
+        return cpu_freq;
+    }
+
+    uint32_t
+    sub24(uint32_t a, uint32_t b) {
+        if (a > b) {
+            return a - b;
+        }
+        if (b - a > 0xFFFFFF) {
+            return 0xFFFFFFFF - b + a;
+        }
+        return 0xFFFFFF - b + a;
+    }
+
+    const uint64_t part_of_second = 100;
+    uint64_t timer_tic = PM_FREQ / part_of_second;
+    uint32_t pm_start = pmtimer_get_timeval();
+    uint64_t tsc_start = read_tsc();
+
+    while (sub24(pmtimer_get_timeval(), pm_start) < timer_tic) {
+        asm("pause");
+    }
+    cpu_freq = (read_tsc() - tsc_start) * part_of_second;
 
     return cpu_freq;
 }
