@@ -45,9 +45,10 @@ static struct Command commands[] = {
         {"backtrace", "Print stack backtrace", mon_backtrace},
         {"mycmd", "Display predefined text", mon_mycmd},
         {"dumpcmos", "Print CMOS contents", mon_dumpcmos},
-        {"timer_start", "No description yet", mon_start},
-        {"timer_stop", "No description yet", mon_stop},
-        {"timer_freq", "No description yet", mon_frequency},
+        {"timer_start", "timer start", mon_start},
+        {"timer_stop", "timer stop", mon_stop},
+        {"timer_freq", "get frequency of timer", mon_frequency},
+        {"memory", "dump memory list", mon_memory},
 };
 #define NCOMMANDS (sizeof(commands) / sizeof(commands[0]))
 
@@ -168,7 +169,10 @@ int mon_frequency(int argc, char **argv, struct Trapframe *tf) {
  * This command should call dump_memory_lists()
  */
 // LAB 6: Your code here
-
+int mon_memory(int argc, char **argv, struct Trapframe *tf) {
+    dump_memory_lists();
+    return 0;
+}
 
 /* Kernel monitor command interpreter */
 

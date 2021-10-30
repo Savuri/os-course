@@ -65,9 +65,10 @@ _head64:
     incq %rcx
     jnz 1b
 
-    # Update CR3 register
+    # Update CR3 register with PCIDE is on
     movq $pml4, %rax
     movq %rax, %cr3
+    # Now pages was setted up so pa(0x01600000) == va(0x8041600000)
 
     # Transition to high mem entry code and pass LoadParams address
     movabs $entry, %rax
