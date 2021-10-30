@@ -223,11 +223,11 @@ bind_functions(struct Env *env, uint8_t *binary, size_t size, uintptr_t image_st
                     const char *name = &strtab_address[syms[j].st_name]; // get name of (probably) function
                     uintptr_t addr = find_function(name);                // attempt to find address by name
 
-                    if (addr) {
+                    if (addr && syms[j].st_value >= image_start && syms[j].st_value <= image_end) {
                         // if was found
-//                        cprintf("%s :: %lx\n", name, addr);
-//                        Почему все функции это данные вопрос открытый... STT_OBJECT - The symbol is associated with a data object.
-//                        cprintf("SOME info about sym %lu %u. KAK %u\n", j, ELF64_ST_TYPE(syms[j].st_info), ELF64_ST_BIND(syms[j].st_info));
+                        // cprintf("%s %lx %lx\n", name, addr, syms[j].st_value);
+                        // cprintf("%s :: %lx\n", name, addr);
+                        // cprintf("SOME info about sym %lu %u. KAK %u\n", j, ELF64_ST_TYPE(syms[j].st_info), ELF64_ST_BIND(syms[j].st_info));
 
                         memcpy((void *)syms[j].st_value, &addr, sizeof(addr));
                     }
@@ -294,6 +294,8 @@ load_icode(struct Env *env, uint8_t *binary, size_t size) {
 
     struct Proghdr *ph = (struct Proghdr *)(binary + elf->e_phoff);
 
+    uintptr_t image_start = UINTPTR_MAX, image_end = 0;
+
     for (UINT16 i = 0; i < elf->e_phnum; ++i) {
         if (ph[i].p_type == ELF_PROG_LOAD) {
             // src = binary + ph[i].p_offset
@@ -301,6 +303,14 @@ load_icode(struct Env *env, uint8_t *binary, size_t size) {
             // cpysize = ph[i].p_filesz;
             // allsize = ph[i].p_memsz;
             // The file size can not be larger than the memory size
+
+            if (image_start > ph[i].p_va) {
+                image_start = ph[i].p_va;
+            }
+
+            if (image_end < (uintptr_t) (ph[i].p_va + ph[i].p_memsz)) {
+                image_end = (uintptr_t) (ph[i].p_va + ph[i].p_memsz);
+            }
 
             memcpy((void *)ph[i].p_va, binary + ph[i].p_offset, ph[i].p_filesz);
 
@@ -311,7 +321,7 @@ load_icode(struct Env *env, uint8_t *binary, size_t size) {
 
     env->env_tf.tf_rip = elf->e_entry;
 
-    bind_functions(env, binary, size, (uintptr_t) binary, (uintptr_t) (binary + size));
+    bind_functions(env, binary, size, image_start, image_end);
 
     return 0;
 }
