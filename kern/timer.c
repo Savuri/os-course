@@ -348,6 +348,17 @@ pmtimer_get_timeval(void) {
     return inl(fadt->PMTimerBlock);
 }
 
+uint32_t
+sub24(uint32_t a, uint32_t b) {
+    if (a > b) {
+        return a - b;
+    }
+    if (b - a > 0xFFFFFF) {
+        return 0xFFFFFFFF - b + a;
+    }
+    return 0xFFFFFF - b + a;
+}
+
 /* Calculate CPU frequency in Hz with the help with ACPI PowerManagement timer.
  * HINT Use pmtimer_get_timeval function and do not forget that ACPI PM timer
  *      can be 24-bit or 32-bit. */
@@ -359,17 +370,6 @@ pmtimer_cpu_frequency(void) {
 
     if (cpu_freq) {
         return cpu_freq;
-    }
-
-    uint32_t
-    sub24(uint32_t a, uint32_t b) {
-        if (a > b) {
-            return a - b;
-        }
-        if (b - a > 0xFFFFFF) {
-            return 0xFFFFFFFF - b + a;
-        }
-        return 0xFFFFFF - b + a;
     }
 
     const uint64_t part_of_second = 100;
