@@ -51,7 +51,7 @@
  *                     :              .               :                   |
  *  KERN_HEAP_END -->  +------------------------------+ 0x803fe00000    --+
  *                     |       Memory-mapped I/O      | RW/--  HUGE_PAGE_SIZE
- * MAX_USER_READABLE, KERN_HEAP_START -->  +------------------------------+ 0x803fc00000
+ * MAX_USER_READABLE, KERN_HEAP_START -->  +------------------------------+ 0x803fc00000 <-- ULIM
  *                     |          RO PAGES            | R-/R-
  *                     .                              .
  *                     .                              .        400 * HUGE_PAGE_SIZE
@@ -64,7 +64,7 @@
  *                     .                              .
  *                     .                              .
  * MAX_USER_ADDRESS,               .                              .
- *USER_EXCEPTION_STACK_TOP +-_------------------------+ 0x8000000000
+ *USER_EXCEPTION_STACK_TOP +-_------------------------+ 0x8000000000 <-- UTOP
  *                     |     User Exception Stack     | RW/RW  PAGE_SIZE
  *                     +------------------------------+ 0x7ffffff000
  *                     |       Empty Memory (*)       | --/--  PAGE_SIZE
@@ -189,7 +189,7 @@
 #endif
 
 /* Where user programs generally begin */
-#define UTEXT (4 * HUGE_PAGE_SIZE)
+#define UT  EXT (4 * HUGE_PAGE_SIZE)
 
 /* Used for temporary page mappings.  Typed 'void*' for convenience */
 #define UTEMP ((void *)(2 * HUGE_PAGE_SIZE))
