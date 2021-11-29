@@ -57,6 +57,8 @@ add_pgfault_handler(pf_handler_t handler) {
         _pfhandler_vec[_pfhandler_off++] = handler;
 
 end:
+    res = sys_env_set_pgfault_upcall(sys_getenvid(), _pgfault_upcall);
+
     if (res < 0) panic("set_pgfault_handler: %i", res);
     return res;
 }
