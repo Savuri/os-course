@@ -296,6 +296,9 @@ trap_dispatch(struct Trapframe *tf) {
         // LAB 5: Your code here
         // LAB 4: Your code here
         timer_for_schedule->handle_interrupts();
+        rtc_check_status();
+        pic_send_eoi(IRQ_CLOCK);
+        sched_yield();
         return;
     default:
         print_trapframe(tf);
@@ -400,6 +403,7 @@ page_fault_handler(struct Trapframe *tf) {
     // LAB 9: Your code here:
 
     uintptr_t cr2 = rcr2();
+    (void)cr2;
 
     /* Handle kernel-mode page faults. */
     if (!(tf->tf_err & FEC_U)) {
@@ -441,7 +445,6 @@ page_fault_handler(struct Trapframe *tf) {
 
     static_assert(UTRAP_RIP == offsetof(struct UTrapframe, utf_rip), "UTRAP_RIP should be equal to RIP offset");
     static_assert(UTRAP_RSP == offsetof(struct UTrapframe, utf_rsp), "UTRAP_RSP should be equal to RSP offset");
-
 
     uintptr_t fault_va = cr2;
     cprintf("[%09x] ENTER %p \n", curenv->env_id, curenv->env_pgfault_upcall);
