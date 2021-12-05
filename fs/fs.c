@@ -42,7 +42,7 @@ void
 free_block(uint32_t blockno) {
     /* Blockno zero is the null pointer of block numbers. */
     if (blockno == 0) panic("attempt to free zero block");
-    SETBIT(bitmap, blockno);
+    SETBIT(bitmap, blockno); // 1 bit === free block
 }
 
 /* Search the bitmap for a free block and allocate it.  When you
@@ -61,6 +61,19 @@ alloc_block(void) {
 
     // LAB 10: Your code here
 
+    // block_no = 0 reserved for errors
+    // block_no = 1 reserved for superblock
+
+    // setted up i bit in bitmap === i block is free
+    for (blockno_t block_no = 2; block_no < super->s_nblocks; ++block_no) {
+        if (block_is_free(block_no)) {
+            CLRBIT(bitmap, block_no);
+            flush_block(&bitmap[block_no / 32]);
+            return block_no;
+        }
+    }
+
+    cprintf("alloc_block: Out of blocks\n");
     return 0;
 }
 
@@ -128,8 +141,24 @@ fs_init(void) {
 int
 file_block_walk(struct File *f, blockno_t filebno, blockno_t **ppdiskbno, bool alloc) {
     // LAB 10: Your code here
+    if (filebno >= NDIRECT + NINDIRECT) return -E_INVAL;
 
-    *ppdiskbno = 0;
+    if (filebno < NDIRECT) {
+        *ppdiskbno = f->f_direct + filebno;
+
+        return 0;
+    }
+
+    if (!f->f_indirect) {
+        if (!alloc) return -E_NOT_FOUND;
+        blockno_t blockno = alloc_block();
+        if (!blockno) return -E_NO_DISK;
+
+        f->f_indirect = blockno; // ?
+        memset(diskaddr(f->f_indirect), 0, BLKSIZE);
+    }
+
+    *ppdiskbno = (blockno_t *) diskaddr(f->f_indirect) + filebno - NDIRECT;
 
     return 0;
 }
@@ -146,7 +175,24 @@ int
 file_get_block(struct File *f, uint32_t filebno, char **blk) {
     // LAB 10: Your code here
 
-    *blk = 0;
+    int res;
+    blockno_t *pdiskbno;
+
+    if ((res = file_block_walk(f, filebno, &pdiskbno, 1)) < 0) {
+        return res;
+    }
+
+    blockno_t new_block;
+
+    if (!*pdiskbno) {
+        if ((new_block = alloc_block()) < 0) {
+            return -E_NO_DISK;
+        }
+
+        *pdiskbno = new_block;
+    }
+
+    *blk = (char *) diskaddr(*pdiskbno);
 
     return 0;
 }

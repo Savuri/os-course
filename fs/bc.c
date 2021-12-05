@@ -17,11 +17,11 @@ diskaddr(uint32_t blockno) {
  * loading it from disk. */
 static bool
 bc_pgfault(struct UTrapframe *utf) {
-    void *addr = (void *)utf->utf_fault_va;
-    blockno_t blockno = ((uintptr_t)addr - (uintptr_t)DISKMAP) / BLKSIZE;
+    void *addr = (void *)utf->utf_fault_va; // Виртуальный адрес в котором произошёл pagefault
+    blockno_t blockno = ((uintptr_t)addr - (uintptr_t)DISKMAP) / BLKSIZE; // Вычисляем номер блока в котором произошла pagefault
 
     /* Check that the fault was within the block cache region */
-    if (addr < (void *)DISKMAP || addr >= (void *)(DISKMAP + DISKSIZE)) return 0;
+    if (addr < (void *)DISKMAP || addr >= (void *)(DISKMAP + DISKSIZE)) return 0; // Адрес в пространстве файловой системы
 
     /* Sanity check the block number. */
     if (super && blockno >= super->s_nblocks)
@@ -32,6 +32,10 @@ bc_pgfault(struct UTrapframe *utf) {
      * Hint: first round addr to page boundary. fs/ide.c has code to read
      * the disk. */
     // LAB 10: Your code here
+
+    addr = ROUNDDOWN(addr, PAGE_SIZE);
+    assert(sys_alloc_region(CURENVID, addr, PAGE_SIZE, PROT_RW) >= 0);
+    assert(ide_read(blockno * BLKSECTS, addr, BLKSECTS) >= 0);
 
     return 1;
 }
@@ -53,7 +57,12 @@ flush_block(void *addr) {
         panic("reading non-existent block %08x out of %08x\n", blockno, super->s_nblocks);
 
     // LAB 10: Your code here.
+    addr = ROUNDDOWN(addr, PAGE_SIZE);
+    if (!is_page_present(addr) || !is_page_dirty(addr)) return;
 
+    // А где мы зануляем грязность странички? - Там,где не берём с собой этот флаг с помощью get_prot
+    assert(ide_write(blockno * BLKSECTS, addr, BLKSECTS) >= 0);
+    assert(sys_map_region(CURENVID, addr, CURENVID, addr, PAGE_SIZE, get_prot(addr)) >= 0);
 
     assert(!is_page_dirty(addr));
 }

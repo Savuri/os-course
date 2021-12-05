@@ -532,11 +532,11 @@ env_run(struct Env *env) {
     if (curenv) {
         if (curenv->env_status == ENV_RUNNING) {
             curenv->env_status = ENV_RUNNABLE;
-        } else if (curenv->env_status == ENV_FREE) {
+        } /*else if (curenv->env_status == ENV_FREE) {
 
         } else {
             cprintf("env_run: unexpected: %u\n", curenv->env_status);
-        }
+        }*/
     }
 
     curenv = env;
