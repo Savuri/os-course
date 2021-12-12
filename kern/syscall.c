@@ -418,6 +418,28 @@ sys_ipc_recv(uintptr_t dstva, uintptr_t maxsize) {
 static int
 sys_env_set_trapframe(envid_t envid, struct Trapframe *tf) {
     // LAB 11: Your code here
+    struct Env* env;
+    // Check environment id to be valid and accessible
+    if (envid2env(envid, &env, false) < 0) {
+        return -E_BAD_ENV;
+    }
+
+    //Check argument to be valid memory
+    user_mem_assert(env, tf, sizeof(struct Trapframe), PROT_USER_ | PROT_R);
+    //Use nosan_memcpy to copy from usespace
+    nosan_memcpy((void*)&env->env_tf, (void*)tf, sizeof(struct Trapframe));
+
+    //Prevent privilege escalation by overriding segments
+    env->env_tf.tf_cs = GD_UT | 3;
+    env->env_tf.tf_ds = GD_UD | 3;
+    env->env_tf.tf_es = GD_UD | 3;
+    env->env_tf.tf_ss = GD_UD | 3;
+
+    //Only allow program to set safe flags in RFLAGS register
+    env->env_tf.tf_rflags &= 0xFFF;
+    //Force IF to be set in RFLAGS
+    env->env_tf.tf_rflags |= FL_IF;
+
     return 0;
 }
 
@@ -479,6 +501,8 @@ syscall(uintptr_t syscallno, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t
         return sys_ipc_try_send((envid_t)a1, (uint32_t)a2, a3,(size_t)a4,(int)a5);
     case SYS_ipc_recv:
         return sys_ipc_recv(a1, a2);
+    case SYS_env_set_trapframe:
+        return sys_env_set_trapframe((envid_t) a1, (struct Trapframe *) a2);
     default:
         cprintf("Unexpected in syscall\n");
     }

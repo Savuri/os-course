@@ -279,11 +279,36 @@ map_segment(envid_t child, uintptr_t va, size_t memsz,
     // LAB 11: Your code here
 
     /* Allocate filesz - memsz in child */
+
+    size_t filesz_a = ROUNDUP(va + filesz, PAGE_SIZE) - va;
+
+    if (memsz > filesz_a) {
+        res = sys_alloc_region(child, (void *)va + filesz_a, memsz - filesz_a, perm);
+        if (res < 0) return res;
+    }
+
     /* Allocate filesz in parent to UTEMP */
+    res = sys_alloc_region(CURENVID, UTEMP, filesz_a, PROT_RW);
+    if (res < 0) return res;
+
+    if (filesz_a > filesz) {
+        memset(UTEMP + filesz, 0, filesz_a - filesz);
+    }
     /* seek() fd to fileoffset  */
+    res = seek(fd, fileoffset);
+    if (res < 0) return res;
     /* read filesz to UTEMP */
+    for (int i = 0; i < filesz; i += PAGE_SIZE) {
+        res = readn(fd, UTEMP + i, PAGE_SIZE);
+        if (res < 0) return res;
+    }
     /* Map read section conents to child */
+//    debug_prot(perm);
+    res = sys_map_region(CURENVID, UTEMP, child, (void *)va, filesz_a, perm | PROT_LAZY);
+    if (res < 0) return res;
     /* Unmap it from parent */
+    res = sys_unmap_region(CURENVID, UTEMP, filesz_a);
+    if (res < 0) return res;
 
     return 0;
 }

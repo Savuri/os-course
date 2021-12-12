@@ -49,6 +49,16 @@ again:
              * then close the original 'fd'. */
 
             // LAB 11: Your code here
+            fd = open(t, O_RDONLY);
+            if (fd < 0) {
+                cprintf("sh.c: fd < 0\n");
+                exit();
+            }
+
+            if (fd != 0) {
+                dup(fd, 0);
+                close(fd);
+            }
             break;
 
         case '>': /* Output redirection */
