@@ -5,6 +5,8 @@
 #include <kern/timer.h>
 #include <kern/trap.h>
 #include <kern/picirq.h>
+// LAB 12
+#include <inc/time.h>
 
 
 /* HINT: Note that selected CMOS
@@ -114,10 +116,13 @@ get_time(void) {
 int
 gettime(void) {
     // LAB 12: your code here
-    int res = 0;
+    int t1, t2;
+    do {
+        t1 = get_time();
+        t2 = get_time();
+    } while (t1 != t2);
 
-
-    return res;
+    return t1;
 }
 
 void

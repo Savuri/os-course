@@ -94,7 +94,8 @@ envid2env(envid_t envid, struct Env **env_store, bool need_check_perm) {
 void
 env_init(void) {
     // LAB 12: Your code here
-
+    vsys = (int *) kzalloc_region (sizeof(*vsys) * NVSYSCALLS);
+    memset((int *)vsys, 0, sizeof(*vsys) * NVSYSCALLS);
     /* kzalloc_region only works with current_space != NULL */
 
     /* Allocate envs array with kzalloc_region
