@@ -305,10 +305,8 @@ trap_dispatch(struct Trapframe *tf) {
         // LAB 12: Your code here
         // LAB 5: Your code here
         // LAB 4: Your code here
-//        vsys[VSYS_gettime] = gettime();
-        rtc_check_status();
-        pic_send_eoi(IRQ_CLOCK);
         timer_for_schedule->handle_interrupts();
+        vsys[VSYS_gettime] = gettime();
         sched_yield();
         return;
         /* Handle keyboard and serial interrupts. */
