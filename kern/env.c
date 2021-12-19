@@ -121,6 +121,10 @@ env_init(void) {
         envs[i].env_status = ENV_FREE;
         envs[i].env_id = 0;
         envs[i].env_link = &envs[i + 1];
+        envs[i].env_ucred.cr_uid = 0;
+        envs[i].env_ucred.cr_gid = 0;
+        envs[i].env_ucred.cr_ruid = 0;
+        envs[i].env_ucred.cr_rgid = 0;
     }
 
     envs[NENV - 1].env_status = ENV_FREE;
