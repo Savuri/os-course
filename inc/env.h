@@ -6,6 +6,7 @@
 #include <inc/types.h>
 #include <inc/trap.h>
 #include <inc/memlayout.h>
+#include <inc/ucred.h>
 
 typedef int32_t envid_t;
 
@@ -82,6 +83,9 @@ struct Env {
     uint32_t env_ipc_value;  /* Data value sent to us */
     envid_t env_ipc_from;    /* envid of the sender */
     int env_ipc_perm;        /* Perm of page mapping received */
+
+    /* ITASK */
+    struct ucred env_ucred;
 };
 
 #endif /* !JOS_INC_ENV_H */

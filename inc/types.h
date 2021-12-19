@@ -8,6 +8,8 @@
 typedef uintptr_t physaddr_t;
 typedef ptrdiff_t ssize_t;
 typedef int32_t off_t;
+typedef uint32_t uid_t;
+typedef uint32_t gid_t;
 
 /* Efficient min and max operations */
 #ifndef MIN
