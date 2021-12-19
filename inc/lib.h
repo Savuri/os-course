@@ -94,6 +94,7 @@ int sys_unmap_region(envid_t env, void *pg, size_t size);
 int sys_ipc_try_send(envid_t to_env, uint64_t value, void *pg, size_t size, int perm);
 int sys_ipc_recv(void *rcv_pg, size_t size);
 int sys_gettime(void);
+int sys_get_ucred(envid_t id, struct Ucred* ucred);
 
 int vsys_gettime(void);
 
