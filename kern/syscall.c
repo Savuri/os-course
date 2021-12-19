@@ -4,7 +4,7 @@
 #include <inc/error.h>
 #include <inc/string.h>
 #include <inc/assert.h>
-#include <inc/ucred.h> // ITASK
+#include <inc/ucred.h>
 
 #include <kern/console.h>
 #include <kern/env.h>
@@ -93,7 +93,7 @@ sys_exofork(void) {
      * will appear to return 0. */
 
     // LAB 9: Your code here
-    struct Env* env;
+    struct Env *env;
     env_alloc(&env, curenv->env_id, ENV_TYPE_USER);
     env->env_status = ENV_NOT_RUNNABLE;
     env->env_tf = curenv->env_tf;
@@ -117,7 +117,7 @@ sys_env_set_status(envid_t envid, int status) {
      * envid's status. */
 
     // LAB 9: Your code here
-    struct Env* env;
+    struct Env *env;
     if (envid2env(envid, &env, true) < 0) {
         return -1;
     }
@@ -140,7 +140,7 @@ sys_env_set_status(envid_t envid, int status) {
 static int
 sys_env_set_pgfault_upcall(envid_t envid, void *func) {
     // LAB 9: Your code here:
-    struct Env* env;
+    struct Env *env;
     if (envid2env(envid, &env, 1) < 0) {
         return -1;
     }
@@ -174,7 +174,7 @@ sys_env_set_pgfault_upcall(envid_t envid, void *func) {
 static int
 sys_alloc_region(envid_t envid, uintptr_t addr, size_t size, int perm) {
     // LAB 9: Your code here:
-    struct Env* env;
+    struct Env *env;
 
     if (envid2env(envid, &env, 1) < 0) {
         return -E_BAD_ENV;
@@ -233,8 +233,8 @@ static int
 sys_map_region(envid_t srcenvid, uintptr_t srcva,
                envid_t dstenvid, uintptr_t dstva, size_t size, int perm) {
     // LAB 9: Your code here
-    struct Env* srcenv;
-    struct Env* dstenv;
+    struct Env *srcenv;
+    struct Env *dstenv;
 
     if (envid2env(srcenvid, &srcenv, true) < 0 || envid2env(dstenvid, &dstenv, true) < 0) {
         return -E_BAD_ENV;
@@ -270,7 +270,7 @@ sys_unmap_region(envid_t envid, uintptr_t va, size_t size) {
     /* Hint: This function is a wrapper around unmap_region(). */
 
     // LAB 9: Your code here
-    struct Env* env;
+    struct Env *env;
     if (envid2env(envid, &env, 1) < 0) {
         return -E_BAD_ENV;
     }
@@ -331,7 +331,7 @@ sys_unmap_region(envid_t envid, uintptr_t va, size_t size) {
 static int
 sys_ipc_try_send(envid_t envid, uint32_t value, uintptr_t srcva, size_t size, int perm) {
     // LAB 9: Your code here
-    struct Env* to_env = NULL;
+    struct Env *to_env = NULL;
 
     if (envid2env(envid, &to_env, false) < 0) {
         return -E_BAD_ENV;
@@ -403,7 +403,6 @@ sys_ipc_recv(uintptr_t dstva, uintptr_t maxsize) {
 
     curenv->env_tf.tf_regs.reg_rax = 0;
     sched_yield();
-
 }
 
 /*
@@ -419,7 +418,7 @@ sys_ipc_recv(uintptr_t dstva, uintptr_t maxsize) {
 static int
 sys_env_set_trapframe(envid_t envid, struct Trapframe *tf) {
     // LAB 11: Your code here
-    struct Env* env;
+    struct Env *env;
     // Check environment id to be valid and accessible
     if (envid2env(envid, &env, false) < 0) {
         return -E_BAD_ENV;
@@ -428,7 +427,7 @@ sys_env_set_trapframe(envid_t envid, struct Trapframe *tf) {
     //Check argument to be valid memory
     user_mem_assert(env, tf, sizeof(struct Trapframe), PROT_USER_ | PROT_R);
     //Use nosan_memcpy to copy from usespace
-    nosan_memcpy((void*)&env->env_tf, (void*)tf, sizeof(struct Trapframe));
+    nosan_memcpy((void *)&env->env_tf, (void *)tf, sizeof(struct Trapframe));
 
     //Prevent privilege escalation by overriding segments
     env->env_tf.tf_cs = GD_UT | 3;
@@ -511,9 +510,9 @@ syscall(uintptr_t syscallno, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t
     case SYS_alloc_region:
         return sys_alloc_region((envid_t)a1, a2, (size_t)a3, (int)a4);
     case SYS_map_region:
-        return sys_map_region((envid_t) a1, a2,(envid_t)a3, a4, (size_t)a5, (int)a6);
+        return sys_map_region((envid_t)a1, a2, (envid_t)a3, a4, (size_t)a5, (int)a6);
     case SYS_unmap_region:
-        return sys_unmap_region((envid_t) a1, a2,(size_t)a3);
+        return sys_unmap_region((envid_t)a1, a2, (size_t)a3);
     case SYS_region_refs:
         return sys_region_refs(a1, (size_t)a2, a3, a4);
     case SYS_exofork:
@@ -521,19 +520,21 @@ syscall(uintptr_t syscallno, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t
     case SYS_env_set_status:
         return sys_env_set_status((envid_t)a1, (int)a2);
     case SYS_env_set_pgfault_upcall:
-        return sys_env_set_pgfault_upcall((envid_t) a1, (void *)a2);
+        return sys_env_set_pgfault_upcall((envid_t)a1, (void *)a2);
     case SYS_yield:
         sys_yield();
         // unreachable
         return 0;
     case SYS_ipc_try_send:
-        return sys_ipc_try_send((envid_t)a1, (uint32_t)a2, a3,(size_t)a4,(int)a5);
+        return sys_ipc_try_send((envid_t)a1, (uint32_t)a2, a3, (size_t)a4, (int)a5);
     case SYS_ipc_recv:
         return sys_ipc_recv(a1, a2);
     case SYS_env_set_trapframe:
-        return sys_env_set_trapframe((envid_t) a1, (struct Trapframe *) a2);
+        return sys_env_set_trapframe((envid_t)a1, (struct Trapframe *)a2);
     case SYS_gettime:
         return sys_gettime();
+    case SYS_get_ucred:
+        return sys_get_ucred((envid_t)a1, (struct Ucred *)a2);
     default:
         cprintf("Unexpected in syscall\n");
     }
