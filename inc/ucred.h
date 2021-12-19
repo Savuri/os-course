@@ -5,7 +5,7 @@
 
 #define NGROUPS_MAX 32
 
-struct ucred {
+struct Ucred {
 //	u_int	cr_ref;			/* reference count */
 
 	uid_t	cr_uid;			/* effective user id */
