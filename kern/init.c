@@ -131,7 +131,7 @@ i386_init(void) {
     early_boot_pml4_init();
 
     /* Initialize the console.
-    * Can't call cprintf until after we do this! */
+     * Can't call cprintf until after we do this! */
     cons_init();
 
     tsc_calibrate();

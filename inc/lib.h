@@ -67,10 +67,10 @@ char *readline(const char *buf);
 #define PROT_W       0x2 /* Writable */
 #define PROT_R       0x4 /* Readable (mostly ignored) */
 #define PROT_RW      (PROT_R | PROT_W)
-#define PROT_WC      0x8 /* Write-combining */
-#define PROT_CD      0x18 /* Cache disable */
-#define PROT_SHARE   0x40 /* Shared copy flag */
-#define PROT_LAZY    0x80 /* Copy-on-Write flag */
+#define PROT_WC      0x8   /* Write-combining */
+#define PROT_CD      0x18  /* Cache disable */
+#define PROT_SHARE   0x40  /* Shared copy flag */
+#define PROT_LAZY    0x80  /* Copy-on-Write flag */
 #define PROT_COMBINE 0x100 /* Combine old and new priviliges */
 #define PROT_AVAIL   0xA00 /* Free-to-use flags, available for applications */
 /* (mapped directly to page table unused flags) */

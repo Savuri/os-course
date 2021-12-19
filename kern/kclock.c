@@ -29,7 +29,7 @@ cmos_read8(uint8_t reg) {
     // You "select" a CMOS register (for reading or writing) by sending the register number to IO Port 0x70.
     // Since the 0x80 bit of Port 0x70 controls NMI, you always end up setting that, too.
     // So your CMOS controller always needs to know whether your OS wants NMI to be enabled or not.
-    outb (IO_RTC_CMND, reg);
+    outb(IO_RTC_CMND, reg);
     uint8_t res = inb(IO_RTC_DATA);
 
     nmi_enable();

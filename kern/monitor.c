@@ -52,8 +52,7 @@ static struct Command commands[] = {
         {"timer_freq", "get frequency of timer", mon_frequency},
         {"memory", "dump memory list", mon_memory},
         {"virt", "print virtual memory tree", mon_virt},
-        {"pagetable", "print page table", mon_pagetable}
-};
+        {"pagetable", "print page table", mon_pagetable}};
 #define NCOMMANDS (sizeof(commands) / sizeof(commands[0]))
 
 /* Implementations of basic kernel monitor commands */
@@ -82,35 +81,35 @@ mon_kerninfo(int argc, char **argv, struct Trapframe *tf) {
 int
 mon_backtrace(int argc, char **argv, struct Trapframe *tf) {
     // LAB 2: Your code here
-    
+
     uint64_t rbp = read_rbp();
     struct Ripdebuginfo debug_info;
 
     cprintf("Stack backtrace:\n");
 
     while (rbp != 0) {
-        uint64_t rip = *((uint64_t *) rbp + 1);
+        uint64_t rip = *((uint64_t *)rbp + 1);
 
-        cprintf("  rbp %016llx  rip %016llx\n", (long long unsigned) rbp, (long long unsigned) rip);
+        cprintf("  rbp %016llx  rip %016llx\n", (long long unsigned)rbp, (long long unsigned)rip);
 
         int res = debuginfo_rip(rip, &debug_info);
 
         if (res < 0) {
             cprintf("Debug info was not found.\n");
         } else {
-            if (debug_info.rip_fn_namelen == sizeof(debug_info.rip_fn_name)) 
+            if (debug_info.rip_fn_namelen == sizeof(debug_info.rip_fn_name))
                 cprintf("    %s:%d: %256s+%lu\n", debug_info.rip_file, debug_info.rip_line, debug_info.rip_fn_name, rip - debug_info.rip_fn_addr);
-            else 
+            else
                 cprintf("    %s:%d: %s+%lu\n", debug_info.rip_file, debug_info.rip_line, debug_info.rip_fn_name, rip - debug_info.rip_fn_addr);
         }
 
-        rbp = *((uint64_t *) rbp);
+        rbp = *((uint64_t *)rbp);
     }
 
     return 0;
 }
 
-int 
+int
 mon_mycmd(int argc, char **argv, struct Trapframe *tf) {
     cprintf("This text was predefined. Mycmd was here\n");
 
@@ -127,7 +126,6 @@ mon_dumpcmos(int argc, char **argv, struct Trapframe *tf) {
     // LAB 4: Your code here
 
 
-
     for (uint8_t i = 0; i < 128; ++i) {
         // fig 10. 14 - bytes for clock, 114 - storage registers
         // 0x80 == 128
@@ -141,13 +139,13 @@ mon_dumpcmos(int argc, char **argv, struct Trapframe *tf) {
     cprintf("\n");
 
 
-
     return 0;
 }
 
 /* Implement timer_start (mon_start), timer_stop (mon_stop), timer_freq (mon_frequency) commands. */
 // LAB 5: Your code here:
-int mon_start(int argc, char **argv, struct Trapframe *tf) {
+int
+mon_start(int argc, char **argv, struct Trapframe *tf) {
     if (argc != 2) {
         cprintf("Incorrect count of arguments\n");
         return 0;
@@ -155,11 +153,13 @@ int mon_start(int argc, char **argv, struct Trapframe *tf) {
     timer_start(argv[1]);
     return 0;
 }
-int mon_stop(int argc, char **argv, struct Trapframe *tf) {
+int
+mon_stop(int argc, char **argv, struct Trapframe *tf) {
     timer_stop();
     return 0;
 }
-int mon_frequency(int argc, char **argv, struct Trapframe *tf) {
+int
+mon_frequency(int argc, char **argv, struct Trapframe *tf) {
     if (argc != 2) {
         cprintf("Incorrect count of arguments\n");
         return 0;
@@ -173,7 +173,8 @@ int mon_frequency(int argc, char **argv, struct Trapframe *tf) {
  * This command should call dump_memory_lists()
  */
 // LAB 6: Your code here
-int mon_memory(int argc, char **argv, struct Trapframe *tf) {
+int
+mon_memory(int argc, char **argv, struct Trapframe *tf) {
     dump_memory_lists();
     return 0;
 }
@@ -181,11 +182,13 @@ int mon_memory(int argc, char **argv, struct Trapframe *tf) {
 /* Implement mon_pagetable() and mon_virt()
  * (using dump_virtual_tree(), dump_page_table())*/
 // LAB 7: Your code here
-int mon_virt(int argc, char **argv, struct Trapframe *tf) {
+int
+mon_virt(int argc, char **argv, struct Trapframe *tf) {
     dump_virtual_tree(current_space->root, current_space->root->class);
     return 0;
 }
-int mon_pagetable(int argc, char **argv, struct Trapframe *tf) {
+int
+mon_pagetable(int argc, char **argv, struct Trapframe *tf) {
     dump_page_table(current_space->pml4);
     return 0;
 }

@@ -108,9 +108,9 @@ devfile_flush(struct Fd *fd) {
 static ssize_t
 devfile_read(struct Fd *fd, void *buf, size_t n) {
     /* Make an FSREQ_READ request to the file system server after
-   * filling fsipcbuf.read with the request arguments.  The
-   * bytes read will be written back to fsipcbuf by the file
-   * system server. */
+     * filling fsipcbuf.read with the request arguments.  The
+     * bytes read will be written back to fsipcbuf by the file
+     * system server. */
 
     // LAB 10: Your code here:
     fsipcbuf.read.req_fileid = fd->fd_file.id;
@@ -131,9 +131,9 @@ devfile_read(struct Fd *fd, void *buf, size_t n) {
 static ssize_t
 devfile_write(struct Fd *fd, const void *buf, size_t n) {
     /* Make an FSREQ_WRITE request to the file system server.  Be
-   * careful: fsipcbuf.write.req_buf is only so large, but
-   * remember that write is always allowed to write *fewer*
-   * bytes than requested. */
+     * careful: fsipcbuf.write.req_buf is only so large, but
+     * remember that write is always allowed to write *fewer*
+     * bytes than requested. */
     // LAB 10: Your code here:
 
     fsipcbuf.write.req_fileid = fd->fd_file.id;

@@ -73,7 +73,8 @@ acpi_enable(void) {
         ;
 }
 
-int is_rsdp_check_sum_correct(uint8_t *pa, size_t length) {
+int
+is_rsdp_check_sum_correct(uint8_t *pa, size_t length) {
     // Before the RSDP is relied upon you should check that the checksum is valid.
     // For ACPI 1.0 (the first structure) you add up every byte in the structure and make sure the lowest byte of the result is equal to zero.
     // For ACPI 2.0 and later you'd do exactly the same thing for the original (ACPI 1.0) part of the second structure, and then do it again for the fields that are part of the ACPI 2.0 extension.
@@ -86,13 +87,12 @@ int is_rsdp_check_sum_correct(uint8_t *pa, size_t length) {
     return res == 0;
 }
 
-int is_header_check_sum_correct(ACPISDTHeader *tableHeader)
-{
+int
+is_header_check_sum_correct(ACPISDTHeader *tableHeader) {
     unsigned char sum = 0;
 
-    for (int i = 0; i < tableHeader->Length; ++i)
-    {
-        sum += ((uint8_t *) tableHeader)[i];
+    for (int i = 0; i < tableHeader->Length; ++i) {
+        sum += ((uint8_t *)tableHeader)[i];
     }
 
     return sum == 0;
@@ -290,9 +290,9 @@ hpet_get_main_cnt(void) {
 void
 hpet_enable_interrupts_tim0(void) {
     // LAB 5: Your code here
-    hpetReg->GEN_CONF |= HPET_LEG_RT_CNF; // Enable LegacyReplacement Route
+    hpetReg->GEN_CONF |= HPET_LEG_RT_CNF;      // Enable LegacyReplacement Route
     hpetReg->TIM0_CONF |= HPET_TN_INT_ENB_CNF; // enable timer to cause an interrupt when the timer events fires
-    hpetReg->TIM0_CONF |= HPET_TN_TYPE_CNF; // Writing a 1 to this bit enables the timer to generate a periodic interrupt.
+    hpetReg->TIM0_CONF |= HPET_TN_TYPE_CNF;    // Writing a 1 to this bit enables the timer to generate a periodic interrupt.
     hpetReg->TIM0_CONF |= HPET_TN_VAL_SET_CNF; // By writing this bit to a 1, the software is then allowed to directly set a periodic timer’s accumulator
     hpetReg->TIM0_COMP = Peta / 2 / hpetFemto; // period of interrupt = 0.5 seconds
     pic_irq_unmask(IRQ_TIMER);
@@ -301,10 +301,10 @@ hpet_enable_interrupts_tim0(void) {
 void
 hpet_enable_interrupts_tim1(void) {
     // LAB 5: Your code here
-    hpetReg->GEN_CONF |= HPET_LEG_RT_CNF; // Enable LegacyReplacement Route
-    hpetReg->TIM1_CONF |= HPET_TN_INT_ENB_CNF; // enable timer to cause an interrupt when the timer events fires
-    hpetReg->TIM1_CONF |= HPET_TN_TYPE_CNF; // Writing a 1 to this bit enables the timer to generate a periodic interrupt.
-    hpetReg->TIM1_CONF |= HPET_TN_VAL_SET_CNF; // By writing this bit to a 1, the software is then allowed to directly set a periodic timer’s accumulator
+    hpetReg->GEN_CONF |= HPET_LEG_RT_CNF;          // Enable LegacyReplacement Route
+    hpetReg->TIM1_CONF |= HPET_TN_INT_ENB_CNF;     // enable timer to cause an interrupt when the timer events fires
+    hpetReg->TIM1_CONF |= HPET_TN_TYPE_CNF;        // Writing a 1 to this bit enables the timer to generate a periodic interrupt.
+    hpetReg->TIM1_CONF |= HPET_TN_VAL_SET_CNF;     // By writing this bit to a 1, the software is then allowed to directly set a periodic timer’s accumulator
     hpetReg->TIM1_COMP = 3 * Peta / 2 / hpetFemto; // period of interrupt = 1.5 seconds
     pic_irq_unmask(IRQ_CLOCK);
 }

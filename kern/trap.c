@@ -59,7 +59,7 @@ struct Segdesc32 gdt[2 * NCPU + 7] = {
         /* 0x30 - user data segment */
         [GD_UD >> 3] = SEG64(STA_W, 0x0, 0xFFFFFFFF, 3),
         /* Per-CPU TSS descriptors (starting from GD_TSS0) are initialized
-     * in trap_init_percpu() */
+         * in trap_init_percpu() */
         [GD_TSS0 >> 3] = SEG_NULL,
         [(GD_TSS0 >> 3) + 1] = SEG_NULL, /* last 8 bytes of the tss since tss is 16 bytes long */
 };
@@ -110,7 +110,6 @@ trap_init(void) {
 
     // LAB 5: Your code here
     idt[IRQ_OFFSET + IRQ_TIMER] = GATE(0, GD_KT, (uintptr_t)(&clock_thdlr), 0);
-
 
 
     /* Insert trap handlers into IDT */

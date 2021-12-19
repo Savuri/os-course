@@ -48,7 +48,7 @@ asan_internal_range_poisoned(uptr base, size_t size, uptr *first_invalid, bool a
             /* We are not aborting due to userspace memory! */
             // platform_asan_fatal("check out of shadow range", base, size, 0);
             if (!failed_once) {
-                //ASAN_LOG("Ignoring addr [%p:%p), out of shadow!", (void *)base, (void *)(base+size));
+                // ASAN_LOG("Ignoring addr [%p:%p), out of shadow!", (void *)base, (void *)(base+size));
                 failed_once = true;
             }
             continue;
@@ -95,7 +95,7 @@ asan_internal_fill_range(uptr base, size_t size, uint8_t value) {
     for (size_t i = 0; i < limit; i++, size -= SHADOW_ALIGN) {
         if (!SHADOW_ADDRESS_VALID(shadow + i)) {
             /* We are not aborting due to kernelspace memory! */
-            //platform_asan_fatal("poison out of shadow range", base, size, 0);
+            // platform_asan_fatal("poison out of shadow range", base, size, 0);
             if (!failed_once) {
                 ASAN_LOG("Ignoring addr [%p:%p), out of shadow!", (void *)base, (void *)(base + size));
                 failed_once = true;

@@ -12,7 +12,7 @@ struct Ripdebuginfo {
     /* Source code linenumber for RIP */
     int rip_line;
     /* Name of function containing RIP
-    * NOTE Not null terminated */
+     * NOTE Not null terminated */
     char rip_fn_name[RIPDEBUG_BUFSIZ];
     /* Length of function name */
     int rip_fn_namelen;

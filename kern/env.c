@@ -276,7 +276,6 @@ bind_functions(struct Env *env, uint8_t *binary, size_t size, uintptr_t image_st
     }
 
 
-
     return 0;
 }
 
@@ -357,8 +356,8 @@ load_icode(struct Env *env, uint8_t *binary, size_t size) {
                 image_start = ph[i].p_va;
             }
 
-            if (image_end < (uintptr_t) (ph[i].p_va + ph[i].p_memsz)) {
-                image_end = (uintptr_t) (ph[i].p_va + ph[i].p_memsz);
+            if (image_end < (uintptr_t)(ph[i].p_va + ph[i].p_memsz)) {
+                image_end = (uintptr_t)(ph[i].p_va + ph[i].p_memsz);
             }
 
             uintptr_t start_aligned = ROUNDDOWN((uintptr_t)ph[i].p_va, PAGE_SIZE);
