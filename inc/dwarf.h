@@ -397,12 +397,12 @@ dwarf_entry_len(const uint8_t *addr, uint64_t *len) {
     uint64_t count = sizeof(uint32_t);
 
     /* An initial length field value in the range DW_LEN_EXT_LO -
-   * DW_LEN_EXT_HI indicates an extension, and should not be
-   * interpreted as a length. The only extension that we currently
-   * understand is the use of DWARF64 addresses */
+     * DW_LEN_EXT_HI indicates an extension, and should not be
+     * interpreted as a length. The only extension that we currently
+     * understand is the use of DWARF64 addresses */
     if (initial_len >= DW_EXT_LO && initial_len <= DW_EXT_HI) {
         /* The 64-bit length field immediately follows the
-     * compulsory 32-bit length field */
+         * compulsory 32-bit length field */
         if (initial_len == DW_EXT_DWARF64) {
             *len = get_unaligned((uint64_t *)addr + sizeof(uint32_t), uint64_t);
             count += sizeof(uint64_t);

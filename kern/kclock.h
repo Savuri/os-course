@@ -35,21 +35,21 @@
 #define RTC_AIE 0x20
 #define RTC_UIE 0x10
 
-#define	IO_RTC_CMND		0x70		/* RTC control port */
-#define	IO_RTC_DATA		0x71		/* RTC data port */
+#define IO_RTC_CMND 0x70 /* RTC control port */
+#define IO_RTC_DATA 0x71 /* RTC data port */
 
 void rtc_timer_init(void);
 uint8_t rtc_check_status(void);
 
 #define CMOS_START 0xE /* start of CMOS: offset 14 */
-#define CMOS_SIZE  50 /* 50 bytes of CMOS */
+#define CMOS_SIZE  50  /* 50 bytes of CMOS */
 
 /* CMOS bytes 7 & 8: base memory size */
 #define CMOS_BASELO (CMOS_START + 7) /* low byte; RTC off. 0x15 */
 #define CMOS_BASEHI (CMOS_START + 8) /* high byte; RTC off. 0x16 */
 
 /* CMOS bytes 9 & 10: extended memory size */
-#define CMOS_EXTLO (CMOS_START + 9) /* low byte; RTC off. 0x17 */
+#define CMOS_EXTLO (CMOS_START + 9)  /* low byte; RTC off. 0x17 */
 #define CMOS_EXTHI (CMOS_START + 10) /* high byte; RTC off. 0x18 */
 
 /* CMOS bytes 34 and 35: extended memory POSTed size */

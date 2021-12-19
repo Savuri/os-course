@@ -22,29 +22,29 @@ typedef uint64_t EFI_VIRTUAL_ADDRESS;
 
 typedef struct {
     /* Type of the memory region.
-    * Type EFI_MEMORY_TYPE is defined in the
-    * AllocatePages() function description. */
+     * Type EFI_MEMORY_TYPE is defined in the
+     * AllocatePages() function description. */
     UINT32 Type;
 
     /* Physical address of the first byte in the memory region. PhysicalStart must be
-    * aligned on a 4 KiB boundary, and must not be above 0xFFFFFFFFFFFFF000. Type
-    * EFI_PHYSICAL_ADDRESS is defined in the AllocatePages() function description */
+     * aligned on a 4 KiB boundary, and must not be above 0xFFFFFFFFFFFFF000. Type
+     * EFI_PHYSICAL_ADDRESS is defined in the AllocatePages() function description */
     EFI_PHYSICAL_ADDRESS PhysicalStart;
 
     /* Virtual address of the first byte in the memory region.
-    * VirtualStart must be aligned on a 4 KiB boundary,
-    * and must not be above 0xFFFFFFFFFFFFF000 */
+     * VirtualStart must be aligned on a 4 KiB boundary,
+     * and must not be above 0xFFFFFFFFFFFFF000 */
 
     EFI_VIRTUAL_ADDRESS VirtualStart;
     /* NumberOfPagesNumber of 4 KiB pages in the memory region.
-    * NumberOfPages must not be 0, and must not be any value
-    * that would represent a memory page with a start address,
-    * either physical or virtual, above 0xFFFFFFFFFFFFF000 */
+     * NumberOfPages must not be 0, and must not be any value
+     * that would represent a memory page with a start address,
+     * either physical or virtual, above 0xFFFFFFFFFFFFF000 */
 
     UINT64 NumberOfPages;
     /* Attributes of the memory region that describe the bit mask of capabilities
-    * for that memory region, and not necessarily the current settings for that
-    * memory region. */
+     * for that memory region, and not necessarily the current settings for that
+     * memory region. */
 
     UINT64 Attribute;
 } EFI_MEMORY_DESCRIPTOR;

@@ -90,7 +90,7 @@ debuginfo_rip(uintptr_t addr, struct Ripdebuginfo *info) {
     info->rip_fn_narg = 0;
 
     /* Temporarily load kernel cr3 and return back once done.
-    * Make sure that you fully understand why it is necessary. */
+     * Make sure that you fully understand why it is necessary. */
     // LAB 8: Your code here
     uintptr_t old_cr3 = curenv->address_space.cr3;
     if (old_cr3 != kspace.cr3) {
@@ -119,19 +119,19 @@ debuginfo_rip(uintptr_t addr, struct Ripdebuginfo *info) {
     strncpy(info->rip_file, tmp_buf, sizeof(info->rip_file));
 
     /* Find line number corresponding to given address.
-    * Hint: note that we need the address of `call` instruction, but rip holds
-    * address of the next instruction, so we should substract 5 from it.
-    * Hint: use line_for_address from kern/dwarf_lines.c */
+     * Hint: note that we need the address of `call` instruction, but rip holds
+     * address of the next instruction, so we should substract 5 from it.
+     * Hint: use line_for_address from kern/dwarf_lines.c */
 
     // LAB 2: Your res here:
     res = line_for_address(&addrs, addr - 5, line_offset, &info->rip_line);
     if (res < 0) goto error;
     /* Find function name corresponding to given address.
-    * Hint: note that we need the address of `call` instruction, but rip holds
-    * address of the next instruction, so we should substract 5 from it.
-    * Hint: use function_by_info from kern/dwarf.c
-    * Hint: info->rip_fn_name can be not NULL-terminated,
-    * string returned by function_by_info will always be */
+     * Hint: note that we need the address of `call` instruction, but rip holds
+     * address of the next instruction, so we should substract 5 from it.
+     * Hint: use function_by_info from kern/dwarf.c
+     * Hint: info->rip_fn_name can be not NULL-terminated,
+     * string returned by function_by_info will always be */
 
     // LAB 2: Your res here:
     res = function_by_info(&addrs, addr - 5, offset, &tmp_buf, &info->rip_fn_addr);
@@ -153,22 +153,22 @@ find_function(const char *const fname) {
 
     // LAB 3: Your code here:
 
-//    struct map_fun_name_to_addr {
-//        const char *name;
-//        uintptr_t addr;
-//    };
-//
-//    struct map_fun_name_to_addr map[] =
-//    {
-//        {"sys_exit", (uintptr_t) sys_exit},
-//        { "sys_yield", (uintptr_t)sys_yield },
-//    };
-//
-//    for (size_t i = 0; i < sizeof(map) / sizeof(*map); i++) {
-//        if (!strcmp(map[i].name, fname)) {
-//            return map[i].addr;
-//        }
-//    }
+    //    struct map_fun_name_to_addr {
+    //        const char *name;
+    //        uintptr_t addr;
+    //    };
+    //
+    //    struct map_fun_name_to_addr map[] =
+    //    {
+    //        {"sys_exit", (uintptr_t) sys_exit},
+    //        { "sys_yield", (uintptr_t)sys_yield },
+    //    };
+    //
+    //    for (size_t i = 0; i < sizeof(map) / sizeof(*map); i++) {
+    //        if (!strcmp(map[i].name, fname)) {
+    //            return map[i].addr;
+    //        }
+    //    }
 
     struct Dwarf_Addrs addrs;
     load_kernel_dwarf_info(&addrs);

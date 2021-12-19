@@ -16,7 +16,7 @@ void (*volatile sys_exit)(void);
 void
 libmain(int argc, char **argv) {
     /* Perform global constructor initialisation (e.g. asan)
-    * This must be done as early as possible */
+     * This must be done as early as possible */
     extern void (*__ctors_start)(), (*__ctors_end)();
     void (**ctor)() = &__ctors_start;
     while (ctor < &__ctors_end) (*ctor++)();

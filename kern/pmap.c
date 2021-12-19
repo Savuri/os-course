@@ -449,7 +449,8 @@ attach_region(uintptr_t start, uintptr_t end, enum PageState type) {
 
         // if addres of next class is not alligned or next class size is greater then end - start
         // or it is last class
-        for (class = 0; class + 1 < MAX_CLASS && !(start & CLASS_MASK(class + 1) || CLASS_SIZE(class + 1) > end - start); class ++);
+        for (class = 0; class + 1 < MAX_CLASS && !(start & CLASS_MASK(class + 1) || CLASS_SIZE(class + 1) > end - start); class ++)
+            ;
         page_lookup(NULL, start, class, type, 1);
         start += CLASS_SIZE(class);
     }
@@ -644,7 +645,7 @@ dump_memory_lists(void) {
                 struct Page *page = (struct Page *)n;
                 cprintf("pa: [%012lX-%012lX] va:[%012lx-%012lx] class: %d\n",
                         ((long)page->addr) << CLASS_BASE, (page->addr << CLASS_BASE) + (long)CLASS_SIZE(page->class),
-                        (long) KADDR(((long long)page->addr) << CLASS_BASE), (long) KADDR((page->addr << CLASS_BASE) + (long long)CLASS_SIZE(page->class)), page->class);
+                        (long)KADDR(((long long)page->addr) << CLASS_BASE), (long)KADDR((page->addr << CLASS_BASE) + (long long)CLASS_SIZE(page->class)), page->class);
             }
         }
     }
@@ -893,7 +894,6 @@ unmap_page(struct AddressSpace *spc, uintptr_t addr, int class) {
     pde_t *pd = KADDR(PTE_ADDR(pdp[pdpi0]));
 
 
-
     /* Unmap 2 MB hw pages if requested virtual page size is larger than
      * or equal 2 MB.
      * Use remove_pt() here. remove_pt() can handle recusive removal.
@@ -919,7 +919,7 @@ unmap_page(struct AddressSpace *spc, uintptr_t addr, int class) {
 
     // LAB 7: Your code here
     // If page is not present don't need to do anything
-    //otherwise split 2*MB page into smaller 4*KB pages, allocting new page table level
+    // otherwise split 2*MB page into smaller 4*KB pages, allocting new page table level
     if (!(pd[pdi0] & PTE_P))
         return;
     else if (pd[pdi0] & PTE_PS) {
@@ -927,7 +927,7 @@ unmap_page(struct AddressSpace *spc, uintptr_t addr, int class) {
         res = alloc_pt(pd + pdi0);
         assert(!res);
         pte_t *pt = KADDR(PTE_ADDR(pd[pdi0]));
-        res = alloc_fill_pt(pt, old & ~PTE_PS,4 * KB, 0, PT_ENTRY_COUNT);
+        res = alloc_fill_pt(pt, old & ~PTE_PS, 4 * KB, 0, PT_ENTRY_COUNT);
         inval_start = ROUNDDOWN(inval_start, 2 * MB);
         inval_end = ROUNDUP(inval_end, 2 * MB);
         assert(!res);
@@ -1035,7 +1035,8 @@ map_page(struct AddressSpace *spc, uintptr_t addr, struct Page *page, int flags)
 
     // LAB 7: Your code here
 
-    if (!(pd[pdi0] & PTE_P) && alloc_pt(pd + pdi0) < 0) return -E_NO_MEM;
+    if (!(pd[pdi0] & PTE_P) && alloc_pt(pd + pdi0) < 0)
+        return -E_NO_MEM;
     else if (pd[pdi0] & PTE_PS) {
         pde_t old = pd[pdi0];
         if (alloc_pt(pd + pdi0) < 0) return -E_NO_MEM;
@@ -1516,7 +1517,7 @@ release_address_space(struct AddressSpace *space) {
 struct AddressSpace *
 switch_address_space(struct AddressSpace *space) {
     assert(space);
-    //LAB 7: Your code here
+    // LAB 7: Your code here
     if (space == current_space) {
         return current_space;
     }
@@ -1875,7 +1876,7 @@ init_memory(void) {
     nosan_memset(one_page_raw, 0xFF, CLASS_SIZE(MAX_ALLOCATION_CLASS));
 
     /* Perform global constructor initialisation (e.g. asan)
-    * This must be done as early as possible */
+     * This must be done as early as possible */
     extern void (*__ctors_start)();
     extern void (*__ctors_end)();
     void (**ctor)() = &__ctors_start;

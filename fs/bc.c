@@ -17,7 +17,7 @@ diskaddr(uint32_t blockno) {
  * loading it from disk. */
 static bool
 bc_pgfault(struct UTrapframe *utf) {
-    void *addr = (void *)utf->utf_fault_va; // Виртуальный адрес в котором произошёл pagefault
+    void *addr = (void *)utf->utf_fault_va;                               // Виртуальный адрес в котором произошёл pagefault
     blockno_t blockno = ((uintptr_t)addr - (uintptr_t)DISKMAP) / BLKSIZE; // Вычисляем номер блока в котором произошла pagefault
 
     /* Check that the fault was within the block cache region */

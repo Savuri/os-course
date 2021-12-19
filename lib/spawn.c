@@ -153,9 +153,9 @@ error2:
 int
 spawnl(const char *prog, const char *arg0, ...) {
     /* We calculate argc by advancing the args until we hit NULL.
-    * The contract of the function guarantees that the last
-    * argument will always be NULL, and that none of the other
-    * arguments will be NULL. */
+     * The contract of the function guarantees that the last
+     * argument will always be NULL, and that none of the other
+     * arguments will be NULL. */
     int argc = 0;
     va_list vl;
     va_start(vl, arg0);
@@ -163,7 +163,7 @@ spawnl(const char *prog, const char *arg0, ...) {
     va_end(vl);
 
     /* Now that we have the size of the args, do a second pass
-    * and store the values in a VLA, which has the format of argv */
+     * and store the values in a VLA, which has the format of argv */
     const char *argv[argc + 2];
     argv[0] = arg0;
     argv[argc + 1] = NULL;
@@ -193,7 +193,7 @@ init_stack(envid_t child, const char **argv, struct Trapframe *tf) {
     uintptr_t *argv_store;
 
     /* Count the number of arguments (argc)
-    * and the total amount of space needed for strings (string_size). */
+     * and the total amount of space needed for strings (string_size). */
     string_size = 0;
     for (argc = 0; argv[argc] != 0; argc++)
         string_size += strlen(argv[argc]) + 1;
@@ -265,7 +265,7 @@ static int
 map_segment(envid_t child, uintptr_t va, size_t memsz,
             int fd, size_t filesz, off_t fileoffset, int perm) {
 
-    //cprintf("map_segment %x+%x\n", va, memsz);
+    // cprintf("map_segment %x+%x\n", va, memsz);
 
     /* Fixup unaligned destination */
     int res = PAGE_OFFSET(va);
@@ -303,7 +303,7 @@ map_segment(envid_t child, uintptr_t va, size_t memsz,
         if (res < 0) return res;
     }
     /* Map read section conents to child */
-//    debug_prot(perm);
+    //    debug_prot(perm);
     res = sys_map_region(CURENVID, UTEMP, child, (void *)va, filesz_a, perm | PROT_LAZY);
     if (res < 0) return res;
     /* Unmap it from parent */

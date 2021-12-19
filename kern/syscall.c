@@ -18,11 +18,11 @@
  * The string is exactly 'len' characters long.
  * Destroys the environment on memory errors. */
 static int
-sys_cputs(const char *s, size_t len) {
+sys_cputs(const char* s, size_t len) {
     // LAB 8: Your code here
 
     /* Check that the user has permission to read memory [s, s+len).
-    * Destroy the environment if not. */
+     * Destroy the environment if not. */
 
     user_mem_assert(curenv, s, len, PROT_R | PROT_USER_);
     cprintf("%.*s", (int)len, s);
@@ -55,7 +55,7 @@ sys_getenvid(void) {
 static int
 sys_env_destroy(envid_t envid) {
     // LAB 8: Your code here.
-    struct Env *env;
+    struct Env* env;
     if (envid2env(envid, &env, 1) < 0) {
         return -E_BAD_ENV;
     }
@@ -137,7 +137,7 @@ sys_env_set_status(envid_t envid, int status) {
  *  -E_BAD_ENV if environment envid doesn't currently exist,
  *      or the caller doesn't have permission to change envid. */
 static int
-sys_env_set_pgfault_upcall(envid_t envid, void *func) {
+sys_env_set_pgfault_upcall(envid_t envid, void* func) {
     // LAB 9: Your code here:
     struct Env* env;
     if (envid2env(envid, &env, 1) < 0) {
@@ -152,15 +152,15 @@ sys_env_set_pgfault_upcall(envid_t envid, void *func) {
  * The page's contents are set to 0.
  * If a page is already mapped at 'va', that page is unmapped as a
  * side effect.
- * 
+ *
  * This call should work with or without ALLOC_ZERO/ALLOC_ONE flags
  * (set them if they are not already set)
- * 
+ *
  * It allocates memory lazily so you need to use map_region
  * with PROT_LAZY and ALLOC_ONE/ALLOC_ZERO set.
- * 
+ *
  * Don't forget to set PROT_USER_
- * 
+ *
  * PROT_ALL is useful for validation.
  *
  * Return 0 on success, < 0 on error.  Errors are:
@@ -212,7 +212,7 @@ sys_alloc_region(envid_t envid, uintptr_t addr, size_t size, int perm) {
  * at 'dstva' in dstenvid's address space with permission 'perm'.
  * Perm has the same restrictions as in sys_alloc_region, except
  * that it also does not supprt ALLOC_ONE/ALLOC_ONE flags.
- * 
+ *
  * You only need to check alignment of addresses, perm flags and
  * that addresses are a part of user space. Everything else is
  * already checked inside map_region().
@@ -309,7 +309,7 @@ sys_unmap_region(envid_t envid, uintptr_t va, size_t size) {
  * If the sender wants to send a page but the receiver isn't asking for one,
  * then no page mapping is transferred, but no error occurs.
  * Send region size is the minimum of sized specified in sys_ipc_try_send() and sys_ipc_recv()
- * 
+ *
  * The ipc only happens when no errors occur.
  *
  * Returns 0 on success, < 0 on error.
@@ -402,7 +402,6 @@ sys_ipc_recv(uintptr_t dstva, uintptr_t maxsize) {
 
     curenv->env_tf.tf_regs.reg_rax = 0;
     sched_yield();
-
 }
 
 /*
@@ -416,7 +415,7 @@ sys_ipc_recv(uintptr_t dstva, uintptr_t maxsize) {
  *   -Force IF to be set in RFLAGS
  */
 static int
-sys_env_set_trapframe(envid_t envid, struct Trapframe *tf) {
+sys_env_set_trapframe(envid_t envid, struct Trapframe* tf) {
     // LAB 11: Your code here
     struct Env* env;
     // Check environment id to be valid and accessible
@@ -424,20 +423,20 @@ sys_env_set_trapframe(envid_t envid, struct Trapframe *tf) {
         return -E_BAD_ENV;
     }
 
-    //Check argument to be valid memory
+    // Check argument to be valid memory
     user_mem_assert(env, tf, sizeof(struct Trapframe), PROT_USER_ | PROT_R);
-    //Use nosan_memcpy to copy from usespace
+    // Use nosan_memcpy to copy from usespace
     nosan_memcpy((void*)&env->env_tf, (void*)tf, sizeof(struct Trapframe));
 
-    //Prevent privilege escalation by overriding segments
+    // Prevent privilege escalation by overriding segments
     env->env_tf.tf_cs = GD_UT | 3;
     env->env_tf.tf_ds = GD_UD | 3;
     env->env_tf.tf_es = GD_UD | 3;
     env->env_tf.tf_ss = GD_UD | 3;
 
-    //Only allow program to set safe flags in RFLAGS register
+    // Only allow program to set safe flags in RFLAGS register
     env->env_tf.tf_rflags &= 0xFFF;
-    //Force IF to be set in RFLAGS
+    // Force IF to be set in RFLAGS
     env->env_tf.tf_rflags |= FL_IF;
 
     return 0;
@@ -456,7 +455,7 @@ sys_gettime(void) {
  * number of references of regions [addr, addr + size] and [addr2,addr2+size2]
  * if addr2 is less than MAX_USER_ADDRESS, or just
  * maximal number of references to [addr, addr + size]
- * 
+ *
  * Use region_maxref() here.
  */
 static int
@@ -481,7 +480,7 @@ syscall(uintptr_t syscallno, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t
 
     switch (syscallno) {
     case SYS_cputs:
-        return sys_cputs((const char *)a1, (size_t)a2);
+        return sys_cputs((const char*)a1, (size_t)a2);
     case SYS_cgetc:
         return sys_cgetc();
     case SYS_getenvid:
@@ -491,9 +490,9 @@ syscall(uintptr_t syscallno, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t
     case SYS_alloc_region:
         return sys_alloc_region((envid_t)a1, a2, (size_t)a3, (int)a4);
     case SYS_map_region:
-        return sys_map_region((envid_t) a1, a2,(envid_t)a3, a4, (size_t)a5, (int)a6);
+        return sys_map_region((envid_t)a1, a2, (envid_t)a3, a4, (size_t)a5, (int)a6);
     case SYS_unmap_region:
-        return sys_unmap_region((envid_t) a1, a2,(size_t)a3);
+        return sys_unmap_region((envid_t)a1, a2, (size_t)a3);
     case SYS_region_refs:
         return sys_region_refs(a1, (size_t)a2, a3, a4);
     case SYS_exofork:
@@ -501,17 +500,17 @@ syscall(uintptr_t syscallno, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t
     case SYS_env_set_status:
         return sys_env_set_status((envid_t)a1, (int)a2);
     case SYS_env_set_pgfault_upcall:
-        return sys_env_set_pgfault_upcall((envid_t) a1, (void *)a2);
+        return sys_env_set_pgfault_upcall((envid_t)a1, (void*)a2);
     case SYS_yield:
         sys_yield();
         // unreachable
         return 0;
     case SYS_ipc_try_send:
-        return sys_ipc_try_send((envid_t)a1, (uint32_t)a2, a3,(size_t)a4,(int)a5);
+        return sys_ipc_try_send((envid_t)a1, (uint32_t)a2, a3, (size_t)a4, (int)a5);
     case SYS_ipc_recv:
         return sys_ipc_recv(a1, a2);
     case SYS_env_set_trapframe:
-        return sys_env_set_trapframe((envid_t) a1, (struct Trapframe *) a2);
+        return sys_env_set_trapframe((envid_t)a1, (struct Trapframe*)a2);
     case SYS_gettime:
         return sys_gettime();
     default:

@@ -208,7 +208,7 @@ char *
 __asan_strncat(char *dst, const char *src, size_t sz) {
     asan_internal_check_range(dst, __real_strlen(dst) + sz + 1, TYPE_STRINGSTR);
     /* error: undefined symbol: strncat */
-    //return __real_strncat(dst, src, sz);
+    // return __real_strncat(dst, src, sz);
     asan_internal_unsupported(__func__);
 }
 

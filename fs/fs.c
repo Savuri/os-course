@@ -158,7 +158,7 @@ file_block_walk(struct File *f, blockno_t filebno, blockno_t **ppdiskbno, bool a
         memset(diskaddr(f->f_indirect), 0, BLKSIZE);
     }
 
-    *ppdiskbno = (blockno_t *) diskaddr(f->f_indirect) + filebno - NDIRECT;
+    *ppdiskbno = (blockno_t *)diskaddr(f->f_indirect) + filebno - NDIRECT;
 
     return 0;
 }
@@ -192,7 +192,7 @@ file_get_block(struct File *f, uint32_t filebno, char **blk) {
         *pdiskbno = new_block;
     }
 
-    *blk = (char *) diskaddr(*pdiskbno);
+    *blk = (char *)diskaddr(*pdiskbno);
 
     return 0;
 }
@@ -272,8 +272,8 @@ walk_path(const char *path, struct File **pdir, struct File **pf, char *lastelem
     struct File *dir, *f;
     int r;
 
-    //if (*path != '/')
-    //    return -E_BAD_PATH;
+    // if (*path != '/')
+    //     return -E_BAD_PATH;
     path = skip_slash(path);
     f = &super->s_root;
     dir = 0;
