@@ -85,7 +85,7 @@ struct Env {
     int env_ipc_perm;        /* Perm of page mapping received */
 
     /* ITASK */
-    struct Ucred env_ucred;
+    struct ucred env_ucred;
 };
 
 #endif /* !JOS_INC_ENV_H */
