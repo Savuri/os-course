@@ -4,6 +4,7 @@
 #include <inc/error.h>
 #include <inc/string.h>
 #include <inc/assert.h>
+#include <inc/ucred.h> // ITASK
 
 #include <kern/console.h>
 #include <kern/env.h>
@@ -467,6 +468,25 @@ sys_region_refs(uintptr_t addr, size_t size, uintptr_t addr2, uintptr_t size2) {
     if (addr2 >= MAX_USER_ADDRESS) return maxref;
 
     return maxref - region_maxref(current_space, addr2, size2);
+}
+
+/*
+ * This function fill Ucred struct with id's environment cred
+ * On success return 0. On error -E_BAD_ENV
+ */
+static int
+sys_get_ucred(envid_t id, struct Ucred *ucred) {
+    struct Env *env;
+
+    int res;
+
+    if ((res = envid2env(id, &env, 0)) < 0) {
+        return res;
+    }
+
+    (*ucred) = env->env_ucred;
+
+    return 0;
 }
 
 /* Dispatches to the correct kernel function, passing the arguments. */
