@@ -472,8 +472,8 @@ sys_region_refs(uintptr_t addr, size_t size, uintptr_t addr2, uintptr_t size2) {
  * return 0 on success, return -E_BAD_ENV on error
  */
 static int
-sys_get_ucred(envid_t id, struct Ucred *ucred) {
-    struct Env *env;
+sys_get_ucred(envid_t id, struct Ucred* ucred) {
+    struct Env* env;
 
     int res;
 
@@ -532,7 +532,7 @@ syscall(uintptr_t syscallno, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t
     case SYS_gettime:
         return sys_gettime();
     case SYS_get_ucred:
-        return sys_get_ucred((envid_t)a1, (struct Ucred *)a2);
+        return sys_get_ucred((envid_t)a1, (struct Ucred*)a2);
     default:
         cprintf("Unexpected in syscall\n");
     }
