@@ -146,3 +146,8 @@ int
 sys_gettime(void) {
     return syscall(SYS_gettime, 0, 0, 0, 0, 0, 0, 0);
 }
+
+int
+sys_get_ucred(envid_t envid, struct Ucred *ucred) {
+    return syscall(SYS_get_ucred, 0, envid, (uintptr_t) ucred, 0, 0, 0, 0);
+}

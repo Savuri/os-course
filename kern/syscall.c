@@ -467,6 +467,24 @@ sys_region_refs(uintptr_t addr, size_t size, uintptr_t addr2, uintptr_t size2) {
 
     return maxref - region_maxref(current_space, addr2, size2);
 }
+/*
+ * This function fill ucred with id's environment credentials
+ * return 0 on success, return -E_BAD_ENV on error
+ */
+static int
+sys_get_ucred(envid_t id, struct Ucred *ucred) {
+    struct Env *env;
+
+    int res;
+
+    if ((res = envid2env(id, &env, 0)) < 0) {
+        return res;
+    }
+
+    (*ucred) = env->env_ucred;
+
+    return 0;
+}
 
 /* Dispatches to the correct kernel function, passing the arguments. */
 uintptr_t
@@ -513,6 +531,8 @@ syscall(uintptr_t syscallno, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t
         return sys_env_set_trapframe((envid_t)a1, (struct Trapframe*)a2);
     case SYS_gettime:
         return sys_gettime();
+    case SYS_get_ucred:
+        return sys_get_ucred((envid_t)a1, (struct Ucred *)a2);
     default:
         cprintf("Unexpected in syscall\n");
     }
