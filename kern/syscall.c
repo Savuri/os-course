@@ -469,119 +469,95 @@ sys_region_refs(uintptr_t addr, size_t size, uintptr_t addr2, uintptr_t size2) {
 }
 
 /*
- *  Returns 0 on success, -E_BAD_ENV on error
+ *  Returns 0 on success, -1 on error
  */
 
 static int
-sys_setuid(envid_t envid, uid_t uid) {
-    struct Env* e;
-    int res;
-    if ((res = envid2env(envid, &e, 0)) < 0)
-        return res;
-
-    e->env_ucred.cr_ruid = uid;
+sys_setuid(uid_t uid) {
+    if(!curenv)
+        return -1;
+    curenv->env_ucred.cr_ruid = uid;
     return 0;
 }
 
 /*
- *  Returns 0 on success, -E_BAD_ENV on erroe
+ *  Returns 0 on success, -1 on error
  */
 
 static int
-sys_setgid(envid_t envid, gid_t gid) {
-    struct Env* e;
-    int res;
-    if ((res = envid2env(envid, &e, 0)) < 0)
-        return res;
-
-    e->env_ucred.cr_rgid = gid;
+sys_setgid(gid_t gid) {
+    if(!curenv)
+        return -1;    
+    curenv->env_ucred.cr_rgid = gid;
     return 0;
 }
 
 /*
- *  Returns real uid on success, -E_BAD_ENV on error
+ *  Returns real uid on success, -1 on error
  */
 
 static uid_t
-sys_getuid(envid_t envid) {
-    struct Env* e;
-    int res;
-    if ((res = envid2env(envid, &e, 0)) < 0)
-        return res;
-
-    return e->env_ucred.cr_ruid;
+sys_getuid() {
+    if(!curenv)
+        return -1;
+    return curenv->env_ucred.cr_ruid;
 }
 
 /*
- *  Returns real gid on success, -E_BAD_ENV on error
+ *  Returns real gid on success, -1 on error
  */
 
 static gid_t
-sys_getgid(envid_t envid) {
-    struct Env* e;
-    int res;
-    if ((res = envid2env(envid, &e, 0)) < 0)
-        return res;
-
-    return e->env_ucred.cr_rgid;
+sys_getgid() {
+    if(!curenv)
+        return -1;
+    return curenv->env_ucred.cr_rgid;
 }
 
 /*
- *  Returns 0 on success, -E_BAD_ENV on error
+ *  Returns 0 on success, -1 on error
  */
 
 static int
-sys_seteuid(envid_t envid, uid_t uid) {
-    struct Env* e;
-    int res;
-    if ((res = envid2env(envid, &e, 0)) < 0)
-        return res;
-
-    e->env_ucred.cr_uid = uid;
+sys_seteuid(uid_t uid) {
+    if(!curenv)
+        return -1;
+    curenv->env_ucred.cr_uid = uid;
     return 0;
 }
 
 /*
- *  Returns 0 on success, -E_BAD_ENV on erroe
+ *  Returns 0 on success, -1 on error
  */
 
 static int
-sys_setegid(envid_t envid, gid_t gid) {
-    struct Env* e;
-    int res;
-    if ((res = envid2env(envid, &e, 0)) < 0)
-        return res;
-
-    e->env_ucred.cr_gid = gid;
+sys_setegid(gid_t gid) {
+    if(!curenv)
+        return -1;
+    curenv->env_ucred.cr_gid = gid;
     return 0;
 }
 
 /*
- *  Returns effective uid on success, -E_BAD_ENV on error
+ *  Returns effective uid on success, -1 on error
  */
 
 static uid_t
-sys_geteuid(envid_t envid) {
-    struct Env* e;
-    int res;
-    if ((res = envid2env(envid, &e, 0)) < 0)
-        return res;
-
-    return e->env_ucred.cr_uid;
+sys_geteuid() {
+    if(!curenv)
+        return -1;
+    return curenv->env_ucred.cr_uid;
 }
 
 /*
- *  Returns effective gid on success, -E_BAD_ENV on error
+ *  Returns effective gid on success, -1 on error
  */
 
 static gid_t
-sys_getegid(envid_t envid) {
-    struct Env* e;
-    int res;
-    if ((res = envid2env(envid, &e, 0)) < 0)
-        return res;
-
-    return e->env_ucred.cr_gid;
+sys_getegid() {
+    if(!curenv)
+        return -1;
+    return curenv->env_ucred.cr_gid;
 }
 
 /* Dispatches to the correct kernel function, passing the arguments. */
@@ -630,21 +606,21 @@ syscall(uintptr_t syscallno, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t
     case SYS_gettime:
         return sys_gettime();
     case SYS_setuid:
-        return sys_setuid((envid_t)a1, (uid_t)a2);
+        return sys_setuid((uid_t)a1);
     case SYS_getuid:
-        return sys_getuid((envid_t)a1);
+        return sys_getuid();
     case SYS_setgid:
-        return sys_setgid((envid_t)a1, (uid_t)a2);
+        return sys_setgid((gid_t)a1);
     case SYS_getgid:
-        return sys_getgid((envid_t)a1);
+        return sys_getgid();
     case SYS_seteuid:
-        return sys_setuid((envid_t)a1, (uid_t)a2);
+        return sys_setuid((uid_t)a1);
     case SYS_geteuid:
-        return sys_getuid((envid_t)a1);
+        return sys_getuid();
     case SYS_setegid:
-        return sys_setgid((envid_t)a1, (uid_t)a2);
+        return sys_setgid((gid_t)a1);
     case SYS_getegid:
-        return sys_getgid((envid_t)a1);
+        return sys_getgid();
     default:
         cprintf("Unexpected in syscall\n");
     }

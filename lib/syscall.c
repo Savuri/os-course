@@ -148,41 +148,41 @@ sys_gettime(void) {
 }
 
 int
-sys_setuid(envid_t envid, uid_t uid) {
-    return syscall(SYS_setuid, 0, envid, uid, 0, 0, 0, 0);
+sys_setuid(uid_t uid) {
+    return syscall(SYS_setuid, 0, uid, 0, 0, 0, 0, 0);
 }
 
 int
-sys_setgid(envid_t envid, gid_t gid) {
-    return syscall(SYS_setgid, 0, envid, gid, 0, 0, 0, 0);
+sys_setgid(gid_t gid) {
+    return syscall(SYS_setgid, 0, gid, 0, 0, 0, 0, 0);
 }
 
 uid_t
-sys_getuid(envid_t envid) {
-    return syscall(SYS_getuid, 0, envid, 0, 0, 0, 0, 0);
+sys_getuid() {
+    return syscall(SYS_getuid, 0, 0, 0, 0, 0, 0, 0);
 }
 
 gid_t
-sys_getgid(envid_t envid) {
-    return syscall(SYS_getgid, 0, envid, 0, 0, 0, 0, 0);
+sys_getgid() {
+    return syscall(SYS_getgid, 0, 0, 0, 0, 0, 0, 0);
 }
 
 int
-sys_seteuid(envid_t envid, uid_t uid) {
-    return syscall(SYS_seteuid, 0, envid, uid, 0, 0, 0, 0);
+sys_seteuid(uid_t uid) {
+    return syscall(SYS_seteuid, 0, uid, 0, 0, 0, 0, 0);
 }
 
 int
-sys_setegid(envid_t envid, gid_t gid) {
-    return syscall(SYS_setegid, 0, envid, gid, 0, 0, 0, 0);
+sys_setegid(gid_t gid) {
+    return syscall(SYS_setegid, 0, gid, 0, 0, 0, 0, 0);
 }
 
 uid_t
-sys_geteuid(envid_t envid) {
-    return syscall(SYS_geteuid, 0, envid, 0, 0, 0, 0, 0);
+sys_geteuid() {
+    return syscall(SYS_geteuid, 0, 0, 0, 0, 0, 0, 0);
 }
 
 gid_t
-sys_getegid(envid_t envid) {
-    return syscall(SYS_getegid, 0, envid, 0, 0, 0, 0, 0);
+sys_getegid() {
+    return syscall(SYS_getegid, 0, 0, 0, 0, 0, 0, 0);
 }
