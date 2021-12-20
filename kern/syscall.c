@@ -468,6 +468,122 @@ sys_region_refs(uintptr_t addr, size_t size, uintptr_t addr2, uintptr_t size2) {
     return maxref - region_maxref(current_space, addr2, size2);
 }
 
+/*
+ *  Returns 0 on success, -E_BAD_ENV on error
+ */
+
+static int
+sys_setuid(envid_t envid, uid_t uid) {
+    struct Env* e;
+    int res;
+    if ((res = envid2env(envid, &e, 0)) < 0)
+        return res;
+
+    e->env_ucred.cr_ruid = uid;
+    return 0;
+}
+
+/*
+ *  Returns 0 on success, -E_BAD_ENV on erroe
+ */
+
+static int
+sys_setgid(envid_t envid, gid_t gid) {
+    struct Env* e;
+    int res;
+    if ((res = envid2env(envid, &e, 0)) < 0)
+        return res;
+
+    e->env_ucred.cr_rgid = gid;
+    return 0;
+}
+
+/*
+ *  Returns real uid on success, -E_BAD_ENV on error
+ */
+
+static uid_t
+sys_getuid(envid_t envid) {
+    struct Env* e;
+    int res;
+    if ((res = envid2env(envid, &e, 0)) < 0)
+        return res;
+
+    return e->env_ucred.cr_ruid;
+}
+
+/*
+ *  Returns real gid on success, -E_BAD_ENV on error
+ */
+
+static gid_t
+sys_getgid(envid_t envid) {
+    struct Env* e;
+    int res;
+    if ((res = envid2env(envid, &e, 0)) < 0)
+        return res;
+
+    return e->env_ucred.cr_rgid;
+}
+
+/*
+ *  Returns 0 on success, -E_BAD_ENV on error
+ */
+
+static int
+sys_seteuid(envid_t envid, uid_t uid) {
+    struct Env* e;
+    int res;
+    if ((res = envid2env(envid, &e, 0)) < 0)
+        return res;
+
+    e->env_ucred.cr_uid = uid;
+    return 0;
+}
+
+/*
+ *  Returns 0 on success, -E_BAD_ENV on erroe
+ */
+
+static int
+sys_setegid(envid_t envid, gid_t gid) {
+    struct Env* e;
+    int res;
+    if ((res = envid2env(envid, &e, 0)) < 0)
+        return res;
+
+    e->env_ucred.cr_gid = gid;
+    return 0;
+}
+
+/*
+ *  Returns effective uid on success, -E_BAD_ENV on error
+ */
+
+static uid_t
+sys_geteuid(envid_t envid) {
+    struct Env* e;
+    int res;
+    if ((res = envid2env(envid, &e, 0)) < 0)
+        return res;
+
+    return e->env_ucred.cr_uid;
+}
+
+/*
+ *  Returns effective gid on success, -E_BAD_ENV on error
+ */
+
+static gid_t
+sys_getegid(envid_t envid) {
+    struct Env* e;
+    int res;
+    if ((res = envid2env(envid, &e, 0)) < 0)
+        return res;
+
+    return e->env_ucred.cr_gid;
+}
+
 /* Dispatches to the correct kernel function, passing the arguments. */
 uintptr_t
 syscall(uintptr_t syscallno, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4, uintptr_t a5, uintptr_t a6) {
@@ -513,6 +629,22 @@ syscall(uintptr_t syscallno, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t
         return sys_env_set_trapframe((envid_t)a1, (struct Trapframe*)a2);
     case SYS_gettime:
         return sys_gettime();
+    case SYS_setuid:
+        return sys_setuid((envid_t)a1, (uid_t)a2);
+    case SYS_getuid:
+        return sys_getuid((envid_t)a1);
+    case SYS_setgid:
+        return sys_setgid((envid_t)a1, (uid_t)a2);
+    case SYS_getgid:
+        return sys_getgid((envid_t)a1);
+    case SYS_seteuid:
+        return sys_setuid((envid_t)a1, (uid_t)a2);
+    case SYS_geteuid:
+        return sys_getuid((envid_t)a1);
+    case SYS_setegid:
+        return sys_setgid((envid_t)a1, (uid_t)a2);
+    case SYS_getegid:
+        return sys_getgid((envid_t)a1);
     default:
         cprintf("Unexpected in syscall\n");
     }

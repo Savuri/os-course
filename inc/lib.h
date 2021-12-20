@@ -94,6 +94,14 @@ int sys_unmap_region(envid_t env, void *pg, size_t size);
 int sys_ipc_try_send(envid_t to_env, uint64_t value, void *pg, size_t size, int perm);
 int sys_ipc_recv(void *rcv_pg, size_t size);
 int sys_gettime(void);
+int sys_setuid(envid_t envid, uid_t uid);
+int sys_setgid(envid_t envid, gid_t gid);
+uid_t sys_getuid(envid_t envid);
+gid_t sys_getgid(envid_t envid);
+int sys_seteuid(envid_t envid, uid_t uid);
+int sys_setegid(envid_t envid, gid_t gid);
+uid_t sys_geteuid(envid_t envid);
+gid_t sys_getegid(envid_t envid);
 
 int vsys_gettime(void);
 
