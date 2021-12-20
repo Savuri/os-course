@@ -19,6 +19,14 @@ enum {
     SYS_ipc_try_send,
     SYS_ipc_recv,
     SYS_gettime,
+    SYS_setuid,
+    SYS_getuid,
+    SYS_setgid,
+    SYS_getgid,
+    SYS_seteuid,
+    SYS_geteuid,
+    SYS_setegid,
+    SYS_getegid,
     NSYSCALLS
 };
 

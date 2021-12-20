@@ -146,3 +146,43 @@ int
 sys_gettime(void) {
     return syscall(SYS_gettime, 0, 0, 0, 0, 0, 0, 0);
 }
+
+int
+sys_setuid(uid_t uid) {
+    return syscall(SYS_setuid, 0, uid, 0, 0, 0, 0, 0);
+}
+
+int
+sys_setgid(gid_t gid) {
+    return syscall(SYS_setgid, 0, gid, 0, 0, 0, 0, 0);
+}
+
+uid_t
+sys_getuid() {
+    return syscall(SYS_getuid, 0, 0, 0, 0, 0, 0, 0);
+}
+
+gid_t
+sys_getgid() {
+    return syscall(SYS_getgid, 0, 0, 0, 0, 0, 0, 0);
+}
+
+int
+sys_seteuid(uid_t uid) {
+    return syscall(SYS_seteuid, 0, uid, 0, 0, 0, 0, 0);
+}
+
+int
+sys_setegid(gid_t gid) {
+    return syscall(SYS_setegid, 0, gid, 0, 0, 0, 0, 0);
+}
+
+uid_t
+sys_geteuid() {
+    return syscall(SYS_geteuid, 0, 0, 0, 0, 0, 0, 0);
+}
+
+gid_t
+sys_getegid() {
+    return syscall(SYS_getegid, 0, 0, 0, 0, 0, 0, 0);
+}
