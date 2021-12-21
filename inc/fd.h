@@ -42,6 +42,7 @@ struct Stat {
     off_t st_size;
     int st_isdir;
     struct Dev *st_dev;
+    struct Fcred st_fcred;
 };
 
 char *fd2data(struct Fd *fd);
