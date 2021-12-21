@@ -32,24 +32,24 @@ typedef uint32_t blockno_t;
 #define CLRBIT(v, n) ((v)[(n / 32)] &= ~(1U << ((n) % 32)))
 #define TSTBIT(v, n) ((v)[(n / 32)] & (1U << ((n) % 32)))
 
-#define	S_ISUID	04000	/* Set user ID on execution.  */
-#define	S_ISGID	02000	/* Set group ID on execution.  */
-#define	S_ISVTX	01000	/* Save swapped text after use (sticky).  */ // TODO: Did we need it?
+#define S_ISUID 04000                                              /* Set user ID on execution.  */
+#define S_ISGID 02000                                              /* Set group ID on execution.  */
+#define S_ISVTX 01000 /* Save swapped text after use (sticky).  */ // TODO: Did we need it?
 
-#define	S_IRUSR	0400	/* Read by owner.  */
-#define	S_IWUSR	0200	/* Write by owner.  */
-#define	S_IXUSR	0100	/* Execute by owner.  */
-#define	S_IRWXU	(S_IREAD|S_IWRITE|S_IEXEC) /* Read, write, and execute by owner.  */
+#define S_IRUSR 0400                           /* Read by owner.  */
+#define S_IWUSR 0200                           /* Write by owner.  */
+#define S_IXUSR 0100                           /* Execute by owner.  */
+#define S_IRWXU (S_IREAD | S_IWRITE | S_IEXEC) /* Read, write, and execute by owner.  */
 
-#define	S_IRGRP	(S_IRUSR >> 3)	/* Read by group.  */
-#define	S_IWGRP	(S_IWUSR >> 3)	/* Write by group.  */
-#define	S_IXGRP	(S_IXUSR >> 3)	/* Execute by group.  */
-#define	S_IRWXG	(S_IRWXU >> 3) /* Read, write, and execute by group.  */
+#define S_IRGRP (S_IRUSR >> 3) /* Read by group.  */
+#define S_IWGRP (S_IWUSR >> 3) /* Write by group.  */
+#define S_IXGRP (S_IXUSR >> 3) /* Execute by group.  */
+#define S_IRWXG (S_IRWXU >> 3) /* Read, write, and execute by group.  */
 
-#define	S_IROTH	(S_IRGRP >> 3)	/* Read by others.  */
-#define	S_IWOTH	(S_IWGRP >> 3)	/* Write by others.  */
-#define	S_IXOTH	(S_IXGRP >> 3)	/* Execute by others.  */
-#define	S_IRWXO	(S_IRWXG >> 3) /* Read, write, and execute by others.  */
+#define S_IROTH (S_IRGRP >> 3) /* Read by others.  */
+#define S_IWOTH (S_IWGRP >> 3) /* Write by others.  */
+#define S_IXOTH (S_IXGRP >> 3) /* Execute by others.  */
+#define S_IRWXO (S_IRWXG >> 3) /* Read, write, and execute by others.  */
 
 typedef uint16_t permission_t;
 
