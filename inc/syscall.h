@@ -27,6 +27,7 @@ enum {
     SYS_geteuid,
     SYS_setegid,
     SYS_getegid,
+    SYS_getcurdir,
     NSYSCALLS
 };
 

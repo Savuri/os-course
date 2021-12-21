@@ -552,6 +552,15 @@ sys_getegid() {
     return curenv->env_ucred.cr_gid;
 }
 
+/*
+ *  Return 0 on success
+ */
+int sys_getcurdir(char buf[MAXNAMELEN]) {
+    if (!curenv)
+        return -1;
+    return !((strcpy(buf, curenv->current_dir) - buf) == strlen(curenv->current_dir));
+}
+
 /* Dispatches to the correct kernel function, passing the arguments. */
 uintptr_t
 syscall(uintptr_t syscallno, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4, uintptr_t a5, uintptr_t a6) {
@@ -613,6 +622,8 @@ syscall(uintptr_t syscallno, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t
         return sys_setgid((gid_t)a1);
     case SYS_getegid:
         return sys_getgid();
+    case SYS_getcurdir:
+        return sys_getcurdir((char*)a1);
     default:
         cprintf("Unexpected in syscall\n");
     }

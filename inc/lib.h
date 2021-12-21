@@ -102,6 +102,7 @@ int sys_seteuid(uid_t uid);
 int sys_setegid(gid_t gid);
 uid_t sys_geteuid();
 gid_t sys_getegid();
+int sys_getcurdir(char buf[MAXNAMELEN]);
 
 int vsys_gettime(void);
 

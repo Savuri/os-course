@@ -186,3 +186,8 @@ gid_t
 sys_getegid() {
     return syscall(SYS_getegid, 0, 0, 0, 0, 0, 0, 0);
 }
+
+int
+sys_getcurdir(char buf[MAXNAMELEN]) {
+    return syscall(SYS_getcurdir, 0, (uintptr_t)buf, 0, 0, 0, 0, 0);
+}
