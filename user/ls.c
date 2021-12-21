@@ -35,7 +35,7 @@ lsdir(const char *path, const char *prefix) {
 }
 
 void
-get_unix_perm(uint16_t x, unsigned char *res) {
+get_unix_perm(permission_t x, unsigned char *res) {
     const unsigned char s[10] = "rwxrwxrwx";
 
     for (int i = 0; i < 9; i++) {
