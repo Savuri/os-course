@@ -162,7 +162,7 @@ finishdir(struct Dir *d) {
     struct File *start = alloc(size);
     memmove(start, d->ents, size);
     finishfile(d->f, blockof(start), ROUNDUP(size, BLKSIZE));
-    free(d->ents); // COMMENT FOR use dump_dir, dump_file
+    free(d->ents);  // COMMENT FOR use dump_dir, dump_file
     d->ents = NULL; // COMMENT FOR use dump_dir, dump_file
 }
 
@@ -205,10 +205,11 @@ usage(void) {
 /*
  * debug function
  */
-void dump_file(struct File *file) {
-    fprintf(stderr,"Name:[%s]\n", file->f_name);
+void
+dump_file(struct File *file) {
+    fprintf(stderr, "Name:[%s]\n", file->f_name);
     fprintf(stderr, "Type:[%d]\n", file->f_type);
-    fprintf(stderr, "dirrect blocks: ");
+    fprintf(stderr, "direct blocks: ");
 
     for (int i = 0; i < 10; ++i) {
         fprintf(stderr, "[%d] ", file->f_direct[i]);
@@ -216,15 +217,13 @@ void dump_file(struct File *file) {
 
     fprintf(stderr, "\n");
     fprintf(stderr, "indirect:[%u] \n", file->f_indirect);
-
-
-
 }
 
 /*
  * debug function
  */
-void dump_dir(struct Dir *dir) {
+void
+dump_dir(struct Dir *dir) {
     dump_file(dir->f);
 
     for (int i = 0; i < dir->n; i++) {
@@ -237,11 +236,12 @@ void dump_dir(struct Dir *dir) {
 /*
  * write dir (including files and subdirs) and it's content
  */
-void writedir(struct Dir *root, const char *full_name){
+void
+writedir(struct Dir *root, const char *full_name) {
     const char *expected_dir_location = "fs/";
     assert(strncmp(full_name, expected_dir_location, 3) == 0);
 
-    struct Dir ldir;  // loader interpretation of dir
+    struct Dir ldir; // loader interpretation of dir
 
     const char *name = strrchr(full_name, '/');
     if (name) {
@@ -252,7 +252,7 @@ void writedir(struct Dir *root, const char *full_name){
 
     struct File *jdir = diradd(root, FTYPE_DIR, name); // Dir struct in JOS
 
-    jdir->d_parent = (struct File *) NULL; // not implented yet
+    jdir->d_parent = (struct File *)NULL; // not implented yet
 
     startdir(jdir, &ldir);
     DIR *dir; // Linux dir
@@ -297,8 +297,6 @@ void writedir(struct Dir *root, const char *full_name){
         fprintf(stderr, "Dir does not open [%s] %s\n", full_name, strerror(errno));
         exit(1);
     }
-
-
     finishdir(&ldir);
 }
 
