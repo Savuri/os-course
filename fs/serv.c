@@ -90,7 +90,8 @@ openfile_lookup(envid_t envid, uint32_t fileid, struct OpenFile **po) {
 int
 serve_open(envid_t envid, struct Fsreq_open *req,
            void **pg_store, int *perm_store) {
-    char path[MAXPATHLEN];
+    char req_path[MAXPATHLEN];
+    char cur_path[MAXPATHLEN];
     struct File *f;
     int res;
     struct OpenFile *o;
@@ -100,8 +101,11 @@ serve_open(envid_t envid, struct Fsreq_open *req,
     }
 
     /* Copy in the path, making sure it's null-terminated */
-    memmove(path, req->req_path, MAXPATHLEN);
-    path[MAXPATHLEN - 1] = 0;
+    memmove(req_path, req->req_path, MAXPATHLEN);
+    req_path[MAXPATHLEN - 1] = 0;
+    
+    memmove(cur_path, req->cur_path, MAXPATHLEN);
+    cur_path[MAXPATHLEN - 1] = 0;
 
     /* Find an open file ID */
     if ((res = openfile_alloc(&o)) < 0) {
@@ -109,9 +113,11 @@ serve_open(envid_t envid, struct Fsreq_open *req,
         return res;
     }
 
+    // TODO: add NormalizeFilePath(cur_path, req_path);
+    
     /* Open the file */
     if (req->req_omode & O_CREAT) {
-        if ((res = file_create(path, &f)) < 0) {
+        if ((res = file_create(cur_path, &f)) < 0) {
             if (!(req->req_omode & O_EXCL) && res == -E_FILE_EXISTS)
                 goto try_open;
             if (debug) cprintf("file_create failed: %i", res);
@@ -119,7 +125,7 @@ serve_open(envid_t envid, struct Fsreq_open *req,
         }
     } else {
     try_open:
-        if ((res = file_open(path, &f)) < 0) {
+        if ((res = file_open(cur_path, &f)) < 0) {
             if (debug) cprintf("file_open failed: %i", res);
             return res;
         }
@@ -132,7 +138,7 @@ serve_open(envid_t envid, struct Fsreq_open *req,
             return res;
         }
     }
-    if ((res = file_open(path, &f)) < 0) {
+    if ((res = file_open(cur_path, &f)) < 0) {
         if (debug) cprintf("file_open failed: %i", res);
         return res;
     }

@@ -77,6 +77,9 @@ open(const char *path, int mode) {
 
     strcpy(fsipcbuf.open.req_path, path);
     fsipcbuf.open.req_omode = mode;
+    // TODO: add GetCurrentDirectory()
+    // strncpy(fsipcbuf.open.cur_path, thisenv->current_dir, sizeof(fsipcbuf.open.cur_path));
+    strncpy(fsipcbuf.open.cur_path, path, sizeof(fsipcbuf.open.cur_path));
 
     if ((res = fsipc(FSREQ_OPEN, fd)) < 0) {
         fd_close(fd, 0);

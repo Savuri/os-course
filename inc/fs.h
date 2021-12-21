@@ -78,10 +78,13 @@ enum {
     FSREQ_SYNC
 };
 
+// TODO: finish it
 union Fsipc {
     struct Fsreq_open {
         char req_path[MAXPATHLEN];
+        char cur_path[MAXPATHLEN];
         int req_omode;
+        // TODO: add field with creds
     } open;
     struct Fsreq_set_size {
         int req_fileid;
