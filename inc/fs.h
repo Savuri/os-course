@@ -44,8 +44,7 @@ struct File {
 
     /* Pad out to 256 bytes; must do arithmetic in case we're compiling
      * fsformat on a 64-bit machine. */
-    struct File *d_parent; // parrent dir for FTYPE_DIR. part of pad for FTYPE_REG
-    uint8_t f_pad[256 - MAXNAMELEN - 8 - 4 * NDIRECT - 4 - sizeof(struct File *)];
+    uint8_t f_pad[256 - MAXNAMELEN - 8 - 4 * NDIRECT - 4];
 } __attribute__((packed)); /* required only on some 64-bit machines */
 
 /* An inode block contains exactly BLKFILES 'struct File's */

@@ -252,8 +252,6 @@ writedir(struct Dir *root, const char *full_name) {
 
     struct File *jdir = diradd(root, FTYPE_DIR, name); // Dir struct in JOS
 
-    jdir->d_parent = (struct File *)NULL; // not implented yet
-
     startdir(jdir, &ldir);
     DIR *dir; // Linux dir
     struct dirent *ent;
