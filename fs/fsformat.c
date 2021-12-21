@@ -318,7 +318,7 @@ writedir(struct Dir *root, const char *full_name) {
                 panic("Unsupported file type: %s\n", ent->d_name);
             }
 
-            free((void *)full_entry_name);
+            free(full_entry_name);
         }
 
         closedir(dir);
