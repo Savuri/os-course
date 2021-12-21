@@ -7,7 +7,7 @@
 #define bool xxx_bool
 #include <assert.h>
 #include <errno.h>
-#include <fcntl.h>
+#include <mqueue.h>
 #include <inttypes.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -15,7 +15,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/mman.h>
-#include <sys/stat.h>
 #include <dirent.h>
 
 #undef off_t
@@ -29,8 +28,26 @@ typedef uint32_t physaddr_t;
 typedef uint32_t off_t;
 typedef int bool;
 
+// TODO: make this beautiful
+#undef S_ISUID
+#undef S_ISGID
+#undef S_ISVTX // TODO: Did we need it?
+#undef S_IRUSR
+#undef S_IWUSR
+#undef S_IXUSR
+#undef S_IRWXU
+#undef S_IRGRP
+#undef S_IWGRP
+#undef S_IXGRP
+#undef S_IRWXG
+#undef S_IROTH
+#undef S_IWOTH
+#undef S_IXOTH
+#undef S_IRWXO
+
 #include <inc/mmu.h>
 #include <inc/fs.h>
+#include <sys/stat.h>
 
 #define ROUNDUP(n, v) ((n == 0) ? (0) : ((n)-1 + (v) - ((n)-1) % (v)))
 #define MAX_DIR_ENTS  128
@@ -162,8 +179,8 @@ finishdir(struct Dir *d) {
     struct File *start = alloc(size);
     memmove(start, d->ents, size);
     finishfile(d->f, blockof(start), ROUNDUP(size, BLKSIZE));
-    free(d->ents);  // COMMENT FOR use dump_dir, dump_file
-    d->ents = NULL; // COMMENT FOR use dump_dir, dump_file
+    free(d->ents);  // COMMENT FOR use dump_dir, dump_file [debug]
+    d->ents = NULL; // COMMENT FOR use dump_dir, dump_file [debug]
 }
 
 void
@@ -190,6 +207,15 @@ writefile(struct Dir *dir, const char *name) {
         last = name;
 
     f = diradd(dir, FTYPE_REG, last);
+    f->f_cred.fc_uid = 0;
+    f->f_cred.fc_gid = 0;
+
+    if (*name == 'o') {
+        f->f_cred.fc_permission = S_IRWXU | S_IRWXG | S_IRWXO;
+    } else {
+        f->f_cred.fc_permission = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+    }
+
     start = alloc(st.st_size);
     readn(fd, start, st.st_size);
     finishfile(f, blockof(start), st.st_size);
@@ -217,6 +243,9 @@ dump_file(struct File *file) {
 
     fprintf(stderr, "\n");
     fprintf(stderr, "indirect:[%u] \n", file->f_indirect);
+    fprintf(stderr, "uid:[%u] \n", file->f_cred.fc_uid);
+    fprintf(stderr, "gid:[%u] \n", file->f_cred.fc_gid);
+    fprintf(stderr, "acc:[%u] \n", file->f_cred.fc_permission);
 }
 
 /*
@@ -252,10 +281,13 @@ writedir(struct Dir *root, const char *full_name) {
 
     struct File *jdir = diradd(root, FTYPE_DIR, name); // Dir struct in JOS
 
+    jdir->f_cred.fc_permission = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
+    jdir->f_cred.fc_uid = 0;
+    jdir->f_cred.fc_gid = 0;
+
     startdir(jdir, &ldir);
     DIR *dir; // Linux dir
     struct dirent *ent;
-
 
     if ((dir = opendir(full_name)) != NULL) {
         while ((ent = readdir(dir)) != NULL) {
@@ -275,7 +307,7 @@ writedir(struct Dir *root, const char *full_name) {
 
 
             if (stat(full_entry_name, &st) < 0) {
-                fprintf(stderr, "stat failure: %s\n", full_entry_name);
+                panic("stat failure: %s\n", full_entry_name);
             }
 
             if (S_ISREG(st.st_mode)) {
@@ -283,8 +315,7 @@ writedir(struct Dir *root, const char *full_name) {
             } else if (S_ISDIR(st.st_mode)) {
                 writedir(&ldir, full_entry_name);
             } else {
-                fprintf(stderr, "Unsupported file type: %s\n", ent->d_name);
-                exit(1);
+                panic("Unsupported file type: %s\n", ent->d_name);
             }
 
             free((void *)full_entry_name);
@@ -292,8 +323,7 @@ writedir(struct Dir *root, const char *full_name) {
 
         closedir(dir);
     } else {
-        fprintf(stderr, "Dir does not open [%s] %s\n", full_name, strerror(errno));
-        exit(1);
+        panic("Dir does not open [%s] %s\n", full_name, strerror(errno));
     }
     finishdir(&ldir);
 }
@@ -320,8 +350,7 @@ main(int argc, char **argv) {
         struct stat st;
 
         if (stat(argv[i], &st) < 0) {
-            fprintf(stderr, "stat error %s\n", argv[i]);
-            exit(1);
+            panic("stat error %s\n", argv[i]);
         }
 
         if (S_ISDIR(st.st_mode)) {
@@ -329,10 +358,13 @@ main(int argc, char **argv) {
         } else if (S_ISREG(st.st_mode)) {
             writefile(&root, argv[i]);
         } else {
-            fprintf(stderr, "Unsupported file type: %s\n", argv[i]);
-            exit(1);
+            panic("Unsupported file type: %s\n", argv[i]);
         }
     }
+
+    root.f->f_cred.fc_permission = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
+    root.f->f_cred.fc_uid = 0;
+    root.f->f_cred.fc_gid = 0;
 
     finishdir(&root);
     finishdisk();
