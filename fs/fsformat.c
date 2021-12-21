@@ -301,9 +301,9 @@ writedir(struct Dir *root, const char *full_name) {
 
             char *full_entry_name = malloc(l1 + l2 + 2);
             strncpy(full_entry_name, full_name, l1);
-            *(full_entry_name + l1) = '/';
+            full_entry_name[l1] = '/';
             strncpy(full_entry_name + l1 + 1, ent->d_name, l2);
-            *(full_entry_name + l1 + l2 + 1) = '\0';
+            full_entry_name[l1 + l2 + 1] = '\0';
 
 
             if (stat(full_entry_name, &st) < 0) {
