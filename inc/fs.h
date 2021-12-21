@@ -51,7 +51,7 @@ typedef uint32_t blockno_t;
 #define	S_IXOTH	(S_IXGRP >> 3)	/* Execute by others.  */
 #define	S_IRWXO	(S_IRWXG >> 3) /* Read, write, and execute by others.  */
 
-typedef unsigned short permission_t;
+typedef uint16_t permission_t;
 
 struct Fcred {
     uid_t fc_uid;
@@ -70,7 +70,7 @@ struct File {
     blockno_t f_direct[NDIRECT]; /* direct blocks */
     blockno_t f_indirect;        /* indirect block */
 
-    struct Fcred fcred;
+    struct Fcred f_cred;
     /* Pad out to 256 bytes; must do arithmetic in case we're compiling
      * fsformat on a 64-bit machine. */
     uint8_t f_pad[256 - MAXNAMELEN - 8 - 4 * NDIRECT - 4 - sizeof(struct Fcred)];
@@ -135,6 +135,7 @@ union Fsipc {
         char ret_name[MAXNAMELEN];
         off_t ret_size;
         int ret_isdir;
+        struct Fcred ret_fcred;
     } statRet;
     struct Fsreq_flush {
         int req_fileid;
