@@ -89,7 +89,7 @@ groupmember(gid_t gid, struct Ucred *cred) {
  * acc_mode  - acc_type for operation
  * cred      - user's process credentials
  *
- * return 0 if accessed
+ * return 0 if accessible
  * otherwise return -EACCES
  *
  */
