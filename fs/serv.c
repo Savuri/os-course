@@ -65,12 +65,12 @@ serve_init(void) {
  * TODO: скорее всего это стоит вынести из файла повыше
  */
 int
-groupmember(gid_t gid, struct Ucred *cred) {
+groupmember(gid_t gid, const struct Ucred *cred) {
     if (cred->cr_gid == gid)
         return 1;
 
-    gid_t *gp = cred->cr_groups;
-    gid_t *egp = &(cred->cr_groups[cred->cr_ngroups]);
+    const gid_t *gp = cred->cr_groups;
+    const gid_t *egp = &(cred->cr_groups[cred->cr_ngroups]);
 
     while (gp < egp) {
         if (*gp == gid)
@@ -95,7 +95,7 @@ groupmember(gid_t gid, struct Ucred *cred) {
  */
 int
 access(int type, permission_t file_mode, uid_t uid, gid_t gid,
-       enum acc_type acc_mode, struct Ucred *cred) {
+       enum acc_type acc_mode, const struct Ucred *cred) {
     /* User id 0 always gets read/write access. */
     if (cred->cr_uid == 0) {
         /* For EXEC, at least one of the execute bits must be set. */
@@ -289,6 +289,17 @@ serve_read(envid_t envid, union Fsipc *ipc) {
     int res;
     if ((res = openfile_lookup(envid, req->req_fileid, &openFile)) < 0) return res;
 
+    struct Ucred cred = envs[envid].env_ucred;
+    if ((res = access(FTYPE_REG,
+                openFile->o_file->f_cred.fc_permission, 
+                openFile->o_file->f_cred.fc_uid, 
+                openFile->o_file->f_cred.fc_gid, 
+                READ, 
+                &cred)))
+    {
+        return res;
+    }
+
     ssize_t n = file_read(openFile->o_file, ipc->readRet.ret_buf, req->req_n, openFile->o_fd->fd_offset);
     if (n < 0) return n;
 
@@ -311,6 +322,17 @@ serve_write(envid_t envid, union Fsipc *ipc) {
     struct OpenFile *o;
     int res = openfile_lookup(envid, req->req_fileid, &o);
     if (res < 0) return res;
+
+    struct Ucred cred = envs[envid].env_ucred;
+    if ((res = access(FTYPE_REG,
+                o->o_file->f_cred.fc_permission, 
+                o->o_file->f_cred.fc_uid, 
+                o->o_file->f_cred.fc_gid, 
+                READ, 
+                &cred))) 
+    {
+        return res;
+    }
 
     ssize_t n = file_write(o->o_file, req->req_buf, req->req_n, o->o_fd->fd_offset);
     if (n < 0) return n;
