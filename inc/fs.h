@@ -51,13 +51,13 @@ typedef uint32_t blockno_t;
 #define S_IXOTH (S_IXGRP >> 3) /* Execute by others.  */
 #define S_IRWXO (S_IRWXG >> 3) /* Read, write, and execute by others.  */
 
-typedef uint16_t permission_t;
+typedef uint16_t permission_t; // TODO: rename to understandable mode_t
 
 struct Fcred {
     uid_t fc_uid;
     gid_t fc_gid;
 
-    permission_t fc_permission;
+    permission_t fc_permission; // TODO: rename to understandable fc_mode
 };
 
 struct File {
