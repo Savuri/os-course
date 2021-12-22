@@ -7,12 +7,14 @@ FSOFILES := 		$(OBJDIR)/fs/ide.o \
 			$(OBJDIR)/fs/serv.o \
 			$(OBJDIR)/fs/test.o \
 
-FSIMGTXTFILES :=	fs/newmotd \
-			fs/motd \
-			fs/lorem \
-			fs/script \
-			fs/testshell.key \
-			fs/testshell.sh
+FSIMGDIRS := fs/load/etc
+
+FSIMGTXTFILES :=	fs/load/newmotd \
+			fs/load/motd \
+			fs/load/lorem \
+			fs/load/script \
+			fs/load/testshell.key \
+			fs/load/testshell.sh
 
 USERAPPS :=		$(OBJDIR)/user/init \
 			$(OBJDIR)/user/cat \
@@ -34,7 +36,7 @@ USERAPPS :=		$(OBJDIR)/user/init \
 			$(OBJDIR)/user/vdate \
 
 
-FSIMGFILES := $(FSIMGTXTFILES) $(USERAPPS)
+FSIMGFILES := $(FSIMGTXTFILES) $(USERAPPS) $(FSIMGDIRS)
 
 $(OBJDIR)/fs/%.o: fs/%.c fs/fs.h inc/lib.h $(OBJDIR)/.vars.USER_CFLAGS
 	@echo + cc[USER] $<

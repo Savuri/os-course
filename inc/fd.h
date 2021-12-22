@@ -42,6 +42,7 @@ struct Stat {
     off_t st_size;
     int st_isdir;
     struct Dev *st_dev;
+    struct Fcred st_fcred; // TODO: may be pointer is better
 };
 
 char *fd2data(struct Fd *fd);
