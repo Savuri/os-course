@@ -188,6 +188,6 @@ sys_getegid() {
 }
 
 int
-sys_getcurdir(char buf[MAXNAMELEN]) {
+sys_getcurdir(char buf[MAXPATHLEN]) {
     return syscall(SYS_getcurdir, 0, (uintptr_t)buf, 0, 0, 0, 0, 0);
 }

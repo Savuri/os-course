@@ -78,7 +78,7 @@ open(const char *path, int mode) {
     strcpy(fsipcbuf.open.req_path, path);
     fsipcbuf.open.req_omode = mode;
     // TODO: add GetCurrentDirectory()
-    char curdir[MAXNAMELEN];
+    char curdir[MAXPATHLEN];
     sys_getcurdir(curdir);
     strcpy(fsipcbuf.open.cur_path, curdir);
 
