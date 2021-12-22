@@ -90,7 +90,7 @@ groupmember(gid_t gid, struct Ucred *cred) {
  * cred      - user's process credentials
  *
  * return 0 if accessible
- * otherwise return -EACCES
+ * otherwise return -E_ACCES
  *
  */
 int
@@ -114,7 +114,7 @@ access(int type, permission_t file_mode, uid_t uid, gid_t gid,
             mask |= S_IRUSR;
         if (acc_mode & WRITE)
             mask |= S_IWUSR;
-        return (file_mode & mask) == mask ? 0 : E_ACCES;
+        return (file_mode & mask) == mask ? 0 : -E_ACCES;
     }
 
     /* Otherwise, check the groups. */
@@ -125,7 +125,7 @@ access(int type, permission_t file_mode, uid_t uid, gid_t gid,
             mask |= S_IRGRP;
         if (acc_mode & WRITE)
             mask |= S_IWGRP;
-        return (file_mode & mask) == mask ? 0 : E_ACCES;
+        return (file_mode & mask) == mask ? 0 : -E_ACCES;
     }
 
     /* Otherwise, check everyone else. */
@@ -135,7 +135,7 @@ access(int type, permission_t file_mode, uid_t uid, gid_t gid,
         mask |= S_IROTH;
     if (acc_mode & WRITE)
         mask |= S_IWOTH;
-    return (file_mode & mask) == mask ? 0 : E_ACCES;
+    return (file_mode & mask) == mask ? 0 : -E_ACCES;
 }
 
 
