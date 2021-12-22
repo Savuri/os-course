@@ -84,6 +84,43 @@ openfile_lookup(envid_t envid, uint32_t fileid, struct OpenFile **po) {
     return 0;
 }
 
+
+static unsigned
+GetNextDelimPos(const char rel_path[MAXPATHLEN], unsigned cur_pos) {
+    while (cur_pos < strlen(rel_path) && *rel_path != '/' && *rel_path != '\0') {
+        ++cur_pos;
+    }
+    return cur_pos;
+}
+
+// TODO: need to test this function
+static int 
+NormalizeCurPath(char cur_path[MAXPATHLEN], const char rel_path[MAXPATHLEN]) {
+    unsigned cur_path_len = strlen(cur_path);
+    if (cur_path[cur_path_len-1] != '/') {
+        cur_path[cur_path_len-1] = '/';
+        cur_path_len++;
+    }
+    
+    unsigned left = 0;
+    unsigned right = GetNextDelimPos(rel_path, left + 1);
+
+    const unsigned rel_path_len = strlen(rel_path);
+    while (right < rel_path_len) {
+        if (cur_path_len + right - left >= MAXPATHLEN) {
+            return -1;
+        }
+
+        //TODO: add . and .. cases
+        strncpy(&cur_path[cur_path_len], &rel_path[left], right-left);
+        cur_path_len += right-left; 
+        left = right;
+        right = GetNextDelimPos(rel_path, right + 1);
+    }
+
+    return 0;
+}
+
 /* Open req->req_path in mode req->req_omode, storing the Fd page and
  * permissions to return to the calling environment in *pg_store and
  * *perm_store respectively. */
@@ -113,7 +150,13 @@ serve_open(envid_t envid, struct Fsreq_open *req,
         return res;
     }
 
-    // TODO: add NormalizeFilePath(cur_path, req_path);
+    if (req_path[0] == '/') {
+        //TODO: need to add code with check of existing 
+        strcpy(cur_path, req_path);
+    } else if(!NormalizeCurPath(cur_path, req_path)) {
+        // TODO: add macros for this error
+        return -1;
+    }
     
     /* Open the file */
     if (req->req_omode & O_CREAT) {
