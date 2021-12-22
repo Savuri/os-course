@@ -7,14 +7,14 @@ FSOFILES := 		$(OBJDIR)/fs/ide.o \
 			$(OBJDIR)/fs/serv.o \
 			$(OBJDIR)/fs/test.o \
 
-FSIMGDIRS := fs/etc
+FSIMGDIRS := fs/load/etc
 
-FSIMGTXTFILES :=	fs/newmotd \
-			fs/motd \
-			fs/lorem \
-			fs/script \
-			fs/testshell.key \
-			fs/testshell.sh
+FSIMGTXTFILES :=	fs/load/newmotd \
+			fs/load/motd \
+			fs/load/lorem \
+			fs/load/script \
+			fs/load/testshell.key \
+			fs/load/testshell.sh
 
 USERAPPS :=		$(OBJDIR)/user/init \
 			$(OBJDIR)/user/cat \
