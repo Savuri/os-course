@@ -555,10 +555,10 @@ sys_getegid() {
 /*
  *  Return 0 on success
  */
-int sys_getcurdir(char buf[MAXNAMELEN]) {
+int sys_getcurdir(char buf[MAXPATHLEN]) {
     if (!curenv)
         return -1;
-    return !((strcpy(buf, curenv->current_dir) - buf) == strlen(curenv->current_dir));
+    return !((strcpy(buf, curenv->current_path) - buf) == strlen(curenv->current_path));
 }
 
 /* Dispatches to the correct kernel function, passing the arguments. */

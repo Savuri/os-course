@@ -88,7 +88,7 @@ struct Env {
     /* ITASK */
     struct Ucred env_ucred;
 
-    char current_dir[MAXNAMELEN];
+    char current_path[MAXPATHLEN];
 };
 
 #endif /* !JOS_INC_ENV_H */
