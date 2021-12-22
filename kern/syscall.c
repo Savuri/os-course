@@ -473,7 +473,7 @@ sys_region_refs(uintptr_t addr, size_t size, uintptr_t addr2, uintptr_t size2) {
  */
 static int
 sys_setuid(uid_t uid) {
-    if(!curenv)
+    if (!curenv)
         return -1;
     curenv->env_ucred.cr_ruid = uid;
     return 0;
@@ -484,8 +484,8 @@ sys_setuid(uid_t uid) {
  */
 static int
 sys_setgid(gid_t gid) {
-    if(!curenv)
-        return -1;    
+    if (!curenv)
+        return -1;
     curenv->env_ucred.cr_rgid = gid;
     return 0;
 }
@@ -495,7 +495,7 @@ sys_setgid(gid_t gid) {
  */
 static uid_t
 sys_getuid() {
-    if(!curenv)
+    if (!curenv)
         return -1;
     return curenv->env_ucred.cr_ruid;
 }
@@ -505,7 +505,7 @@ sys_getuid() {
  */
 static gid_t
 sys_getgid() {
-    if(!curenv)
+    if (!curenv)
         return -1;
     return curenv->env_ucred.cr_rgid;
 }
@@ -515,7 +515,7 @@ sys_getgid() {
  */
 static int
 sys_seteuid(uid_t uid) {
-    if(!curenv)
+    if (!curenv)
         return -1;
     curenv->env_ucred.cr_uid = uid;
     return 0;
@@ -526,7 +526,7 @@ sys_seteuid(uid_t uid) {
  */
 static int
 sys_setegid(gid_t gid) {
-    if(!curenv)
+    if (!curenv)
         return -1;
     curenv->env_ucred.cr_gid = gid;
     return 0;
@@ -537,7 +537,7 @@ sys_setegid(gid_t gid) {
  */
 static uid_t
 sys_geteuid() {
-    if(!curenv)
+    if (!curenv)
         return -1;
     return curenv->env_ucred.cr_uid;
 }
@@ -547,7 +547,7 @@ sys_geteuid() {
  */
 static gid_t
 sys_getegid() {
-    if(!curenv)
+    if (!curenv)
         return -1;
     return curenv->env_ucred.cr_gid;
 }
@@ -619,4 +619,3 @@ syscall(uintptr_t syscallno, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t
 
     return -E_NO_SYS;
 }
-
