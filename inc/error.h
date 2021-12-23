@@ -19,6 +19,7 @@ enum {
     E_NO_ENT = 10,       /* Not found */
     E_IPC_NOT_RECV = 11, /* Attempt to send to env that is not recving */
     E_EOF = 12,          /* Unexpected end of file */
+    E_PERM,
     /* File system error codes -- only seen in user-level */
     E_NO_DISK = 13,     /* No free space left on disk */
     E_MAX_OPEN = 14,    /* Too many files are open */
