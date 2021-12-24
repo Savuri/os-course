@@ -351,11 +351,13 @@ void init_parent_field(struct File *dir, struct File *parent_address_in_jos) {
         struct File *f = map_address(dir->f_direct[i]);
 
         for (int j = 0; j < BLKSIZE/sizeof(struct File); ++j) {
-            f[j].parent = parent_address_in_jos;
+            if (f[j].f_name[0] != '\0') {
+                f[j].parent = parent_address_in_jos;
 
-            if (f[j].f_type == FTYPE_DIR) {
-                fprintf(stderr,"NAME = %s", f[j].f_name);
-                init_parent_field(&f[j], disk_address(dir->f_direct[i], j * sizeof(struct File)));
+                if (f[j].f_type == FTYPE_DIR) {
+                    fprintf(stderr, "NAME = %s", f[j].f_name);
+                    init_parent_field(&f[j], disk_address(dir->f_direct[i], j * sizeof(struct File)));
+                }
             }
         }
     }
@@ -370,10 +372,12 @@ void init_parent_field(struct File *dir, struct File *parent_address_in_jos) {
         struct File *f = map_address(block_arr[i]);
 
         for (int j = 0; j < BLKSIZE/sizeof(struct File); ++j) {
-            f[j].parent = parent_address_in_jos;
+            if (f[j].f_name[0] != '\0') {
+                f[j].parent = parent_address_in_jos;
 
-            if (f[j].f_type == FTYPE_DIR) {
-                init_parent_field(&f[j], disk_address(dir->f_direct[i], j * sizeof(struct File)));
+                if (f[j].f_type == FTYPE_DIR) {
+                    init_parent_field(&f[j], disk_address(dir->f_direct[i], j * sizeof(struct File)));
+                }
             }
         }
     }
