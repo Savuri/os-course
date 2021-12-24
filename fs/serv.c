@@ -114,9 +114,16 @@ serve_open(envid_t envid, struct Fsreq_open *req,
         return res;
     }
 
+    /* Create dir */
+    if (req->req_omode & O_MKDIR) {
+        if ((res = file_create(path, &f, FTYPE_DIR)) < 0) {
+            return res;
+        }
+    }
+
     /* Open the file */
     if (req->req_omode & O_CREAT) {
-        if ((res = file_create(path, &f)) < 0) {
+        if ((res = file_create(path, &f, FTYPE_REG)) < 0) {
             if (!(req->req_omode & O_EXCL) && res == -E_FILE_EXISTS)
                 goto try_open;
             if (debug) cprintf("file_create failed: %i", res);
