@@ -443,6 +443,38 @@ file_set_size(struct File *f, off_t newsize) {
     return 0;
 }
 
+/*
+ * remove "path"
+ * return 0 on success
+ * return < 0 on error
+ */
+int
+file_remove(const char *path) {
+    struct File *file, *dir;
+    char last;
+
+    int ret;
+    if ((ret = walk_path(path, &dir, &file, &last)) < 0) {
+        return ret;
+    }
+
+    if (file->f_type == FTYPE_DIR) {
+        if (file->f_size != 0) {
+            return -E_NOT_EMPTY;
+        }
+
+        assert(strcmp(file->f_name, "/") != 0); // Костыль пока права не настроем. Потом удаление корня с нужными правами разрешим (наверно)
+        file->f_name[0] = '\0';
+    } else if (file->f_type == FTYPE_REG) {
+        file_set_size(file, 0);
+        file->f_name[0] = '\0';
+    } else {
+        panic("Unexpected filetype in file remove\n");
+    }
+
+    return 0;
+}
+
 /* Flush the contents and metadata of file f out to disk.
  * Loop over all the blocks in file.
  * Translate the file block number into a disk block number

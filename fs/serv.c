@@ -187,6 +187,20 @@ serve_set_size(envid_t envid, union Fsipc *ipc) {
     return file_set_size(o->o_file, req->req_size);
 }
 
+/*
+ *
+ */
+int
+serve_remove(envid_t envid, union Fsipc *ipc) {
+    struct Fsreq_remove *req = &ipc->remove;
+
+    if (debug) {
+        cprintf("server_remove %08x %s\n", envid, req->req_path);
+    }
+
+    return file_remove(req->req_path);
+}
+
 /* Read at most ipc->read.req_n bytes from the current seek position
  * in ipc->read.req_fileid.  Return the bytes read from the file to
  * the caller in ipc->readRet, then update the seek position.  Returns
@@ -286,7 +300,8 @@ fshandler handlers[] = {
         [FSREQ_FLUSH] = serve_flush,
         [FSREQ_WRITE] = serve_write,
         [FSREQ_SET_SIZE] = serve_set_size,
-        [FSREQ_SYNC] = serve_sync};
+        [FSREQ_SYNC] = serve_sync,
+        [FSREQ_REMOVE] = serve_remove};
 #define NHANDLERS (sizeof(handlers) / sizeof(handlers[0]))
 
 void

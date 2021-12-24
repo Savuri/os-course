@@ -86,6 +86,17 @@ open(const char *path, int mode) {
     return fd2num(fd);
 }
 
+int
+remove(const char *path) {
+    if (strlen(path) >= MAXPATHLEN) {
+        return -E_BAD_PATH;
+    }
+
+    strcpy(fsipcbuf.remove.req_path, path);
+
+    return fsipc(FSREQ_REMOVE, NULL);
+}
+
 /* Flush the file descriptor.  After this the fileid is invalid.
  *
  * This function is called by fd_close.  fd_close will take care of

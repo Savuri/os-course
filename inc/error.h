@@ -29,7 +29,8 @@ enum {
     E_NOT_EXEC = 18,    /* File not a valid executable */
     E_NOT_SUPP = 19,    /* Operation not supported */
 
-    E_PERM = 20, /* Operation not permitted */
+    E_PERM = 20,      /* Operation not permitted */
+    E_NOT_EMPTY = 21, /* FS: Dir is not empty */
     MAXERROR
 };
 
