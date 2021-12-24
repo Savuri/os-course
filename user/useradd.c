@@ -6,6 +6,9 @@ int flag[256];
 
 user_t user;
 
+/*
+ * set defaults for user
+ */
 void
 userinit() {
     user.u_uid = 1;
@@ -17,6 +20,9 @@ userinit() {
     //user.u_primgrp[] = 0; gid = uid
 }
 
+/*
+ * write or update userinfo to /etc/passwd 
+ */
 void
 useradd() {
     for(int i = 0; i < 256; i++){
@@ -29,7 +35,7 @@ useradd() {
                 ;
         }
     }
-    int fd = open("/etc/passwd", O_RDWR | O_CREAT); //O_APPEND?
+    int fd = open("/etc/passwd", O_RDWR); //O_APPEND?
     fprintf(fd, "%s:%s:%d:%s:%s:%s", user.u_comment, user.u_password, user.u_uid,
         user.u_primgrp, user.u_home, user.u_shell);
 }
@@ -40,6 +46,9 @@ usage() {
     exit();
 }
 
+/*
+ * find chars from set in str. Returns first finded char or 0
+ */
 char
 strpbrk(char* str, char* set) {
     for(int i = 0; str[i]; i++){
