@@ -358,7 +358,6 @@ init_parent_field(struct File *dir, struct File *parent_address_in_jos) {
                 f[j].parent = parent_address_in_jos;
 
                 if (f[j].f_type == FTYPE_DIR) {
-                    fprintf(stderr, "NAME = %s", f[j].f_name);
                     init_parent_field(&f[j], disk_address(dir->f_direct[i], j * sizeof(struct File)));
                 }
             }
