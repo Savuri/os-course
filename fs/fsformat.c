@@ -51,6 +51,7 @@ typedef int bool;
 
 #define ROUNDUP(n, v) ((n == 0) ? (0) : ((n)-1 + (v) - ((n)-1) % (v)))
 #define MAX_DIR_ENTS  128
+#define DISKMAP 0x10000000
 
 struct Dir {
     struct File *f;
@@ -328,6 +329,56 @@ writedir(struct Dir *root, const char *full_name) {
     finishdir(&ldir);
 }
 
+void *disk_address(blockno_t blockno, off_t offset) {
+    return (void *)(DISKMAP + blockno * BLKSIZE + offset);
+}
+
+void *map_address(blockno_t blockno) {
+    return (void *)(diskmap + blockno * BLKSIZE);
+}
+
+
+void init_parent_field(struct File *dir, struct File *parent_address_in_jos) {
+    if (strcmp(dir->f_name, "/") == 0) {
+        dir->parent = (struct File *)((char *)DISKMAP + BLKSIZE + sizeof(struct Super) - sizeof(struct File));
+    }
+
+    for (int i = 0; i < 10; ++i) {
+        if (dir->f_direct[i] == 0) {
+            return;
+        }
+
+        struct File *f = map_address(dir->f_direct[i]);
+
+        for (int j = 0; j < BLKSIZE/sizeof(struct File); ++j) {
+            f[j].parent = parent_address_in_jos;
+
+            if (f[j].f_type == FTYPE_DIR) {
+                fprintf(stderr,"NAME = %s", f[j].f_name);
+                init_parent_field(&f[j], disk_address(dir->f_direct[i], j * sizeof(struct File)));
+            }
+        }
+    }
+
+    if (dir->f_indirect == 0) {
+        return;
+    }
+
+    blockno_t *block_arr = map_address(dir->f_indirect);
+
+    for (int i = 0; i < BLKSIZE / sizeof(blockno_t); ++i) {
+        struct File *f = map_address(block_arr[i]);
+
+        for (int j = 0; j < BLKSIZE/sizeof(struct File); ++j) {
+            f[j].parent = parent_address_in_jos;
+
+            if (f[j].f_type == FTYPE_DIR) {
+                init_parent_field(&f[j], disk_address(dir->f_direct[i], j * sizeof(struct File)));
+            }
+        }
+    }
+}
+
 int
 main(int argc, char **argv) {
     int i;
@@ -367,6 +418,7 @@ main(int argc, char **argv) {
     root.f->f_cred.fc_gid = 0;
 
     finishdir(&root);
+    init_parent_field(root.f, (struct File *)(DISKMAP + BLKSIZE + sizeof(struct Super) - sizeof(struct File)));
     finishdisk();
 
     return 0;
