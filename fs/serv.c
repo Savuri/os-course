@@ -291,12 +291,11 @@ serve_read(envid_t envid, union Fsipc *ipc) {
 
     struct Ucred cred = envs[envid].env_ucred;
     if ((res = access(FTYPE_REG,
-                openFile->o_file->f_cred.fc_permission, 
-                openFile->o_file->f_cred.fc_uid, 
-                openFile->o_file->f_cred.fc_gid, 
-                READ, 
-                &cred)))
-    {
+                      openFile->o_file->f_cred.fc_permission,
+                      openFile->o_file->f_cred.fc_uid,
+                      openFile->o_file->f_cred.fc_gid,
+                      READ,
+                      &cred))) {
         return res;
     }
 
@@ -325,12 +324,11 @@ serve_write(envid_t envid, union Fsipc *ipc) {
 
     struct Ucred cred = envs[envid].env_ucred;
     if ((res = access(FTYPE_REG,
-                o->o_file->f_cred.fc_permission, 
-                o->o_file->f_cred.fc_uid, 
-                o->o_file->f_cred.fc_gid, 
-                READ, 
-                &cred))) 
-    {
+                      o->o_file->f_cred.fc_permission,
+                      o->o_file->f_cred.fc_uid,
+                      o->o_file->f_cred.fc_gid,
+                      READ,
+                      &cred))) {
         return res;
     }
 
