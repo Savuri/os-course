@@ -331,6 +331,7 @@ file_create(const char *path, struct File **pf) {
     if ((res = dir_alloc_file(dir, &filp)) < 0) return res;
 
     strcpy(filp->f_name, name);
+    filp->parent = dir;
     *pf = filp;
     file_flush(dir);
     return 0;
