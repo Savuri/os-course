@@ -30,11 +30,6 @@
  * TODO: вынести в какой-то .h. этот enum, скорее всего, нужен будет
  * в других файла
  */
-enum acc_type {
-    READ,
-    WRITE,
-    EXEC
-};
 
 struct OpenFile {
     uint32_t o_fileid;   /* file id */
@@ -59,85 +54,6 @@ serve_init(void) {
         va += PAGE_SIZE;
     }
 }
-
-/*
- * Check if gid is a member of the group set.
- * TODO: скорее всего это стоит вынести из файла повыше
- */
-int
-groupmember(gid_t gid, const struct Ucred *cred) {
-    if (cred->cr_gid == gid)
-        return 1;
-
-    const gid_t *gp = cred->cr_groups;
-    const gid_t *egp = &(cred->cr_groups[cred->cr_ngroups]);
-
-    while (gp < egp) {
-        if (*gp == gid)
-            return 1;
-
-        gp++;
-    }
-
-    return 0;
-}
-
-/* type      - FTYPE_REG or FTYPE_DIR
- * file_mode - file's permissions
- * uid       - file's creator uid
- * gid       - file's creator gid
- * acc_mode  - acc_type for operation
- * cred      - user's process credentials
- *
- * return 0 if accessible
- * otherwise return -E_ACCES
- *
- */
-int
-access(int type, permission_t file_mode, uid_t uid, gid_t gid,
-       enum acc_type acc_mode, const struct Ucred *cred) {
-    /* User id 0 always gets read/write access. */
-    if (cred->cr_uid == 0) {
-        /* For EXEC, at least one of the execute bits must be set. */
-        if ((acc_mode & EXEC) && type != FTYPE_DIR && (file_mode & (S_IXUSR | S_IXGRP | S_IXOTH)) == 0)
-            return -E_ACCES;
-        return 0;
-    }
-
-    permission_t mask = 0;
-
-    /* Otherwise, check the owner. */
-    if (cred->cr_uid == uid) {
-        if (acc_mode & EXEC)
-            mask |= S_IXUSR;
-        if (acc_mode & READ)
-            mask |= S_IRUSR;
-        if (acc_mode & WRITE)
-            mask |= S_IWUSR;
-        return (file_mode & mask) == mask ? 0 : -E_ACCES;
-    }
-
-    /* Otherwise, check the groups. */
-    if (groupmember(gid, cred)) {
-        if (acc_mode & EXEC)
-            mask |= S_IXGRP;
-        if (acc_mode & READ)
-            mask |= S_IRGRP;
-        if (acc_mode & WRITE)
-            mask |= S_IWGRP;
-        return (file_mode & mask) == mask ? 0 : -E_ACCES;
-    }
-
-    /* Otherwise, check everyone else. */
-    if (acc_mode & EXEC)
-        mask |= S_IXOTH;
-    if (acc_mode & READ)
-        mask |= S_IROTH;
-    if (acc_mode & WRITE)
-        mask |= S_IWOTH;
-    return (file_mode & mask) == mask ? 0 : -E_ACCES;
-}
-
 
 /* Allocate an open file. */
 int
@@ -289,15 +205,6 @@ serve_read(envid_t envid, union Fsipc *ipc) {
     int res;
     if ((res = openfile_lookup(envid, req->req_fileid, &openFile)) < 0) return res;
 
-    struct Ucred cred = envs[envid].env_ucred;
-    if ((res = access(FTYPE_REG,
-                      openFile->o_file->f_cred.fc_permission,
-                      openFile->o_file->f_cred.fc_uid,
-                      openFile->o_file->f_cred.fc_gid,
-                      READ,
-                      &cred))) {
-        return res;
-    }
 
     ssize_t n = file_read(openFile->o_file, ipc->readRet.ret_buf, req->req_n, openFile->o_fd->fd_offset);
     if (n < 0) return n;
@@ -321,16 +228,6 @@ serve_write(envid_t envid, union Fsipc *ipc) {
     struct OpenFile *o;
     int res = openfile_lookup(envid, req->req_fileid, &o);
     if (res < 0) return res;
-
-    struct Ucred cred = envs[envid].env_ucred;
-    if ((res = access(FTYPE_REG,
-                      o->o_file->f_cred.fc_permission,
-                      o->o_file->f_cred.fc_uid,
-                      o->o_file->f_cred.fc_gid,
-                      READ,
-                      &cred))) {
-        return res;
-    }
 
     ssize_t n = file_write(o->o_file, req->req_buf, req->req_n, o->o_fd->fd_offset);
     if (n < 0) return n;
