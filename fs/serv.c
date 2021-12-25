@@ -30,6 +30,92 @@
  * TODO: вынести в какой-то .h. этот enum, скорее всего, нужен будет
  * в других файла
  */
+enum acc_type {
+    READ = 00400,
+    WRITE = 0200,
+    EXEC = 0100,
+    SUID = 04000,
+    SGID = 02000,
+    SVTX = 01000 // Выглядит как то что мы не рализуем
+};
+
+/*
+ * Check if gid is a member of the group set.
+ * TODO: скорее всего это стоит вынести из файла повыше
+ */
+int
+groupmember(gid_t gid, const struct Ucred *cred) {
+    if (cred->cr_gid == gid)
+        return 1;
+
+    const gid_t *gp = cred->cr_groups;
+    const gid_t *egp = &(cred->cr_groups[cred->cr_ngroups]);
+
+    while (gp < egp) {
+        if (*gp == gid)
+            return 1;
+
+        gp++;
+    }
+
+    return 0;
+}
+
+/* type      - FTYPE_REG or FTYPE_DIR
+ * file_mode - file's permissions
+ * uid       - file's creator uid
+ * gid       - file's creator gid
+ * acc_mode  - acc_type for operation
+ * cred      - user's process credentials
+ *
+ * return 0 if accessible
+ * otherwise return -E_ACCES
+ *
+ */
+int
+access(int type, permission_t file_mode, uid_t uid, gid_t gid,
+       int acc_mode, const struct Ucred *cred) {
+    /* User id 0 always gets read/write access. */
+    if (cred->cr_uid == 0) {
+        /* For EXEC, at least one of the execute bits must be set. */
+        if ((acc_mode & EXEC) && type != FTYPE_DIR && (file_mode & (S_IXUSR | S_IXGRP | S_IXOTH)) == 0)
+            return -E_ACCES;
+        return 0;
+    }
+
+    permission_t mask = 0;
+
+    /* Otherwise, check the owner. */
+    if (cred->cr_uid == uid) {
+        if (acc_mode & EXEC)
+            mask |= S_IXUSR;
+        if (acc_mode & READ)
+            mask |= S_IRUSR;
+        if (acc_mode & WRITE)
+            mask |= S_IWUSR;
+        return (file_mode & mask) == mask ? 0 : -E_ACCES;
+    }
+
+    /* Otherwise, check the groups. */
+    if (groupmember(gid, cred)) {
+        if (acc_mode & EXEC)
+            mask |= S_IXGRP;
+        if (acc_mode & READ)
+            mask |= S_IRGRP;
+        if (acc_mode & WRITE)
+            mask |= S_IWGRP;
+        return (file_mode & mask) == mask ? 0 : -E_ACCES;
+    }
+
+    /* Otherwise, check everyone else. */
+    if (acc_mode & EXEC)
+        mask |= S_IXOTH;
+    if (acc_mode & READ)
+        mask |= S_IROTH;
+    if (acc_mode & WRITE)
+        mask |= S_IWOTH;
+    return (file_mode & mask) == mask ? 0 : -E_ACCES;
+}
 
 struct OpenFile {
     uint32_t o_fileid;   /* file id */
