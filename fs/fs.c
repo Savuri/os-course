@@ -443,7 +443,6 @@ file_create(const char *path, struct File **pf, int type, const struct Ucred *uc
 int
 file_open(const char *path, struct File **pf, const struct Ucred *ucred) {
     int res;
-
     if ((res = walk_path(path, 0, pf, 0, ucred)) < 0) {
         return res;
     }
