@@ -104,6 +104,19 @@ strchr(const char *str, int c) {
     return NULL;
 }
 
+/* Return a pointer to the last occurrence of 'c' in 's',
+ *  * or a null pointer if the string has no 'c' */
+char *
+strrchr(const char *str, int c) {
+    char *res = NULL;
+    for (; *str; str++) {
+        if (*str == c) {
+            res = (char*)str;
+        }
+    }
+    return res;
+}
+
 /* Return a pointer to the first occurrence of 'c' in 's',
  *  * or a pointer to the string-ending null character if the string has no 'c' */
 char *

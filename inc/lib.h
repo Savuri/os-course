@@ -103,6 +103,8 @@ int sys_setegid(gid_t gid);
 uid_t sys_geteuid();
 gid_t sys_getegid();
 
+int sys_getenvcurpath(char buf[MAXPATHLEN], envid_t proc_id);
+
 int vsys_gettime(void);
 
 /* This must be inlined. Exercise for reader: why? */
@@ -141,6 +143,7 @@ ssize_t readn(int fd, void *buf, size_t nbytes);
 int dup(int oldfd, int newfd);
 int fstat(int fd, struct Stat *statbuf);
 int stat(const char *path, struct Stat *statbuf);
+void NormalizePath(char cur_dir[MAXPATHLEN], char path[MAXPATHLEN]);
 
 /* file.c */
 int open(const char *path, int mode);

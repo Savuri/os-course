@@ -75,7 +75,11 @@ open(const char *path, int mode) {
     if ((res = fd_alloc(&fd)) < 0) return res;
 
 
-    strcpy(fsipcbuf.open.req_path, path);
+    char tmp_path[MAXPATHLEN];
+    strncpy(tmp_path, path, MAXPATHLEN);
+    sys_getenvcurpath(fsipcbuf.open.req_path, 0);
+    NormalizePath(fsipcbuf.open.req_path, tmp_path);
+ 
     fsipcbuf.open.req_omode = mode;
 
     if ((res = fsipc(FSREQ_OPEN, fd)) < 0) {
@@ -92,7 +96,10 @@ remove(const char *path) {
         return -E_BAD_PATH;
     }
 
-    strcpy(fsipcbuf.remove.req_path, path);
+    char tmp_path[MAXPATHLEN];
+    strncpy(tmp_path, path, MAXPATHLEN);
+    sys_getenvcurpath(fsipcbuf.remove.req_path, 0);
+    NormalizePath(fsipcbuf.remove.req_path, tmp_path);
 
     return fsipc(FSREQ_REMOVE, NULL);
 }
