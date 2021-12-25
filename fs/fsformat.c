@@ -238,7 +238,7 @@ dump_file(struct File *file) {
     fprintf(stderr, "Type:[%d]\n", file->f_type);
     fprintf(stderr, "direct blocks: ");
 
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < NDIRECT; ++i) {
         fprintf(stderr, "[%d] ", file->f_direct[i]);
     }
 
@@ -346,7 +346,7 @@ init_parent_field(struct File *dir, struct File *parent_address_in_jos) {
         dir->parent = (struct File *)((char *)DISKMAP + BLKSIZE + sizeof(struct Super) - sizeof(struct File));
     }
 
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < NDIRECT; ++i) {
         if (dir->f_direct[i] == 0) {
             return;
         }
