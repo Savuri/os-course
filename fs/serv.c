@@ -26,96 +26,6 @@
  *    environment IDs in the kernel.  Use openfile_lookup to translate
  *    file IDs to struct OpenFile. */
 
-/*
- * TODO: вынести в какой-то .h. этот enum, скорее всего, нужен будет
- * в других файла
- */
-enum acc_type {
-    READ = 00400,
-    WRITE = 0200,
-    EXEC = 0100,
-    SUID = 04000,
-    SGID = 02000,
-    SVTX = 01000 // Выглядит как то что мы не рализуем
-};
-
-/*
- * Check if gid is a member of the group set.
- * TODO: скорее всего это стоит вынести из файла повыше
- */
-int
-groupmember(gid_t gid, const struct Ucred *cred) {
-    if (cred->cr_gid == gid)
-        return 1;
-
-    const gid_t *gp = cred->cr_groups;
-    const gid_t *egp = &(cred->cr_groups[cred->cr_ngroups]);
-
-    while (gp < egp) {
-        if (*gp == gid)
-            return 1;
-
-        gp++;
-    }
-
-    return 0;
-}
-
-/* type      - FTYPE_REG or FTYPE_DIR
- * file_mode - file's permissions
- * uid       - file's creator uid
- * gid       - file's creator gid
- * acc_mode  - acc_type for operation
- * cred      - user's process credentials
- *
- * return 0 if accessible
- * otherwise return -E_ACCES
- *
- */
-int
-access(int type, permission_t file_mode, uid_t uid, gid_t gid,
-       int acc_mode, const struct Ucred *cred) {
-    /* User id 0 always gets read/write access. */
-    if (cred->cr_uid == 0) {
-        /* For EXEC, at least one of the execute bits must be set. */
-        if ((acc_mode & EXEC) && type != FTYPE_DIR && (file_mode & (S_IXUSR | S_IXGRP | S_IXOTH)) == 0)
-            return -E_ACCES;
-        return 0;
-    }
-
-    permission_t mask = 0;
-
-    /* Otherwise, check the owner. */
-    if (cred->cr_uid == uid) {
-        if (acc_mode & EXEC)
-            mask |= S_IXUSR;
-        if (acc_mode & READ)
-            mask |= S_IRUSR;
-        if (acc_mode & WRITE)
-            mask |= S_IWUSR;
-        return (file_mode & mask) == mask ? 0 : -E_ACCES;
-    }
-
-    /* Otherwise, check the groups. */
-    if (groupmember(gid, cred)) {
-        if (acc_mode & EXEC)
-            mask |= S_IXGRP;
-        if (acc_mode & READ)
-            mask |= S_IRGRP;
-        if (acc_mode & WRITE)
-            mask |= S_IWGRP;
-        return (file_mode & mask) == mask ? 0 : -E_ACCES;
-    }
-
-    /* Otherwise, check everyone else. */
-    if (acc_mode & EXEC)
-        mask |= S_IXOTH;
-    if (acc_mode & READ)
-        mask |= S_IROTH;
-    if (acc_mode & WRITE)
-        mask |= S_IWOTH;
-    return (file_mode & mask) == mask ? 0 : -E_ACCES;
-}
 
 struct OpenFile {
     uint32_t o_fileid;   /* file id */
@@ -180,7 +90,7 @@ openfile_lookup(envid_t envid, uint32_t fileid, struct OpenFile **po) {
  * *perm_store respectively. */
 int
 serve_open(envid_t envid, struct Fsreq_open *req,
-           void **pg_store, int *perm_store) {
+           void **pg_store, int *perm_store, const struct Ucred *ucred) {
     char path[MAXPATHLEN];
     struct File *f;
     int res;
@@ -202,7 +112,7 @@ serve_open(envid_t envid, struct Fsreq_open *req,
 
     /* Create dir */
     if (req->req_omode & O_MKDIR) {
-        if ((res = file_create(path, &f, FTYPE_DIR)) < 0) {
+        if ((res = file_create(path, &f, FTYPE_DIR, ucred)) < 0) {
             return res;
         }
 
@@ -211,7 +121,7 @@ serve_open(envid_t envid, struct Fsreq_open *req,
 
     /* Open the file */
     if (req->req_omode & O_CREAT) {
-        if ((res = file_create(path, &f, FTYPE_REG)) < 0) {
+        if ((res = file_create(path, &f, FTYPE_REG, ucred)) < 0) {
             if (!(req->req_omode & O_EXCL) && res == -E_FILE_EXISTS)
                 goto try_open;
             if (debug) cprintf("file_create failed: %i", res);
@@ -219,7 +129,7 @@ serve_open(envid_t envid, struct Fsreq_open *req,
         }
     } else {
     try_open:
-        if ((res = file_open(path, &f)) < 0) {
+        if ((res = file_open(path, &f, ucred)) < 0) {
             if (debug) cprintf("file_open failed: %i", res);
             return res;
         }
@@ -227,12 +137,12 @@ serve_open(envid_t envid, struct Fsreq_open *req,
 
     /* Truncate */
     if (req->req_omode & O_TRUNC) {
-        if ((res = file_set_size(f, 0)) < 0) {
+        if (((res = access(f->f_type, f->f_cred, WRITE, ucred)) < 0) || (res = file_set_size(f, 0)) < 0) {
             if (debug) cprintf("file_set_size failed: %i", res);
             return res;
         }
     }
-    if ((res = file_open(path, &f)) < 0) {
+    if ((res = file_open(path, &f, ucred)) < 0) {
         if (debug) cprintf("file_open failed: %i", res);
         return res;
     }
@@ -259,7 +169,7 @@ serve_open(envid_t envid, struct Fsreq_open *req,
 /* Set the size of req->req_fileid to req->req_size bytes, truncating
  * or extending the file as necessary. */
 int
-serve_set_size(envid_t envid, union Fsipc *ipc) {
+serve_set_size(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
     struct Fsreq_set_size *req = &ipc->set_size;
     struct OpenFile *o;
     int r;
@@ -277,6 +187,8 @@ serve_set_size(envid_t envid, union Fsipc *ipc) {
     if ((r = openfile_lookup(envid, req->req_fileid, &o)) < 0)
         return r;
 
+    if (!(o->o_mode & O_WRONLY)) return -E_ACCES;
+
     /* Second, call the relevant file system function (from fs/fs.c).
      * On failure, return the error code to the client. */
     return file_set_size(o->o_file, req->req_size);
@@ -286,14 +198,14 @@ serve_set_size(envid_t envid, union Fsipc *ipc) {
  *
  */
 int
-serve_remove(envid_t envid, union Fsipc *ipc) {
+serve_remove(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
     struct Fsreq_remove *req = &ipc->remove;
 
     if (debug) {
         cprintf("server_remove %08x %s\n", envid, req->req_path);
     }
 
-    return file_remove(req->req_path);
+    return file_remove(req->req_path, ucred);
 }
 
 /* Read at most ipc->read.req_n bytes from the current seek position
@@ -301,7 +213,7 @@ serve_remove(envid_t envid, union Fsipc *ipc) {
  * the caller in ipc->readRet, then update the seek position.  Returns
  * the number of bytes successfully read, or < 0 on error. */
 int
-serve_read(envid_t envid, union Fsipc *ipc) {
+serve_read(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
     struct Fsreq_read *req = &ipc->read;
 
     if (debug) {
@@ -313,6 +225,8 @@ serve_read(envid_t envid, union Fsipc *ipc) {
     struct OpenFile *openFile;
     int res;
     if ((res = openfile_lookup(envid, req->req_fileid, &openFile)) < 0) return res;
+    if (!(openFile->o_mode & O_RDONLY)) return -E_ACCES;
+
     ssize_t n = file_read(openFile->o_file, ipc->readRet.ret_buf, req->req_n, openFile->o_fd->fd_offset);
     if (n < 0) return n;
 
@@ -326,7 +240,7 @@ serve_read(envid_t envid, union Fsipc *ipc) {
  * accordingly.  Extend the file if necessary.  Returns the number of
  * bytes written, or < 0 on error. */
 int
-serve_write(envid_t envid, union Fsipc *ipc) {
+serve_write(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
     struct Fsreq_write *req = &ipc->write;
     if (debug)
         cprintf("serve_write %08x %08x %08x\n", envid, req->req_fileid, (uint32_t)req->req_n);
@@ -335,6 +249,7 @@ serve_write(envid_t envid, union Fsipc *ipc) {
     struct OpenFile *o;
     int res = openfile_lookup(envid, req->req_fileid, &o);
     if (res < 0) return res;
+    if (!(o->o_mode & O_WRONLY)) return -E_ACCES;
 
     ssize_t n = file_write(o->o_file, req->req_buf, req->req_n, o->o_fd->fd_offset);
     if (n < 0) return n;
@@ -346,7 +261,7 @@ serve_write(envid_t envid, union Fsipc *ipc) {
 /* Stat ipc->stat.req_fileid.  Return the file's struct Stat to the
  * caller in ipc->statRet. */
 int
-serve_stat(envid_t envid, union Fsipc *ipc) {
+serve_stat(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
     struct Fsreq_stat *req = &ipc->stat;
     struct Fsret_stat *ret = &ipc->statRet;
 
@@ -355,6 +270,7 @@ serve_stat(envid_t envid, union Fsipc *ipc) {
     struct OpenFile *o;
     int res = openfile_lookup(envid, req->req_fileid, &o);
     if (res < 0) return res;
+    if (!(o->o_mode & O_RDONLY)) return -E_ACCES;
 
     strcpy(ret->ret_name, o->o_file->f_name);
     ret->ret_size = o->o_file->f_size;
@@ -365,25 +281,29 @@ serve_stat(envid_t envid, union Fsipc *ipc) {
 
 /* Flush all data and metadata of req->req_fileid to disk. */
 int
-serve_flush(envid_t envid, union Fsipc *ipc) {
+serve_flush(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
     struct Fsreq_flush *req = &ipc->flush;
     if (debug) cprintf("serve_flush %08x %08x\n", envid, req->req_fileid);
 
     struct OpenFile *o;
     int res = openfile_lookup(envid, req->req_fileid, &o);
     if (res < 0) return res;
+    if (!(o->o_mode & O_WRONLY)) return -E_ACCES;
 
     file_flush(o->o_file);
     return 0;
 }
 
+/*
+ * Huge hammer. Without access. User have not declaration
+ */
 int
-serve_sync(envid_t envid, union Fsipc *req) {
+serve_sync(envid_t envid, union Fsipc *req, const struct Ucred *ucred) {
     fs_sync();
     return 0;
 }
 
-typedef int (*fshandler)(envid_t envid, union Fsipc *req);
+typedef int (*fshandler)(envid_t envid, union Fsipc *req, const struct Ucred *ucred);
 
 fshandler handlers[] = {
         /* Open is handled specially because it passes pages */
@@ -407,6 +327,8 @@ serve(void) {
         perm = 0;
         size_t sz = PAGE_SIZE;
         req = ipc_recv((int32_t *)&whom, fsreq, &sz, &perm);
+        struct Ucred ucred = envs[whom].env_ucred; // TODO:Получить безопасно
+        
         if (debug) {
             cprintf("fs req %d from %08x [page %08lx: %s]\n",
                     req, whom, (unsigned long)get_uvpt_entry(fsreq),
@@ -421,9 +343,9 @@ serve(void) {
 
         pg = NULL;
         if (req == FSREQ_OPEN) {
-            res = serve_open(whom, (struct Fsreq_open *)fsreq, &pg, &perm);
+            res = serve_open(whom, (struct Fsreq_open *)fsreq, &pg, &perm, &ucred);
         } else if (req < NHANDLERS && handlers[req]) {
-            res = handlers[req](whom, fsreq);
+            res = handlers[req](whom, fsreq, &ucred);
         } else {
             cprintf("Invalid request code %d from %08x\n", req, whom);
             res = -E_INVAL;
