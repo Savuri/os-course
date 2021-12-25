@@ -214,7 +214,7 @@ writefile(struct Dir *dir, const char *name) {
     if (*name == 'o') {
         f->f_cred.fc_permission = S_IRWXU | S_IRWXG | S_IRWXO;
     } else {
-        f->f_cred.fc_permission = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+        f->f_cred.fc_permission = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP /*| S_IROTH     */;
     }
 
     start = alloc(st.st_size);

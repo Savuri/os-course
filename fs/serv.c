@@ -119,7 +119,7 @@ serve_open(envid_t envid, struct Fsreq_open *req,
 
         return 0;
     }
-
+    cprintf("HERE\n");
     /* Open the file */
     if (req->req_omode & O_CREAT) {
         if ((res = file_create(path, &f, FTYPE_REG, ucred)) < 0) {
@@ -194,9 +194,6 @@ serve_set_size(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
     return file_set_size(o->o_file, req->req_size);
 }
 
-/*
- *
- */
 int
 serve_remove(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
     struct Fsreq_remove *req = &ipc->remove;
