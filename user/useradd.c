@@ -3,21 +3,74 @@
 #include <inc/string.h>
 
 int flag[256];
+int uids[UID_MAX];
+char buf[256];
 
 user_t user;
+
+int
+getline(int fd) {
+    int i = 0;
+    int r = read(fd, &buf[i], 1);
+    if (!r)
+        return 0;
+    while (buf[i] != '\n') {
+        i++;
+        r = read(fd, &buf[i], 1);
+        if (!r)
+            return 0;
+    }
+    i++;
+    buf[i] = 0;
+    return 1;
+}
+
+void
+saveuid() {
+    char uid[5];
+    int cnt = 0;
+    int i, k;
+    for (i = 0; cnt < 2; i++)
+        if (buf[i] == ':')
+            cnt++;
+    k = i;
+    while (buf[i] != ':') {
+        uid[i - k] = buf[i];
+        i++;
+    }
+    uid[i - k] = 0;
+    uids[(int)strtol(uid, NULL, 10)] = 1;
+}
+
+uid_t
+findfreeuid() {
+    int r;
+    int fd = open("/etc/passwd", O_RDONLY);
+    if (fd < 0)
+        return 1;
+    do {
+        r = getline(fd);
+        saveuid();
+    } while (r);
+
+    for (int i = 0; i < UID_MAX; i++)
+        if (!uids[i])
+            return i;
+    return 0; //out of uids
+}
 
 /*
  * set defaults for user
  */
 void
 userinit() {
-    user.u_uid = 1;
+    user.u_uid = findfreeuid();
     strncpy(user.u_home, "/", 1);
     user.u_home[1] = 0;
+    user.u_primgrp = user.u_uid;
     strncpy(user.u_shell, "/sh", 3);
     user.u_shell[3] = 0;
     user.u_password[0] = 0;
-    //user.u_primgrp[] = 0; gid = uid
 }
 
 /*
@@ -34,8 +87,8 @@ useradd() {
         default:;
         }
     }
-    int fd = open("/etc/passwd", O_WRONLY | O_CREAT); //O_APPEND?
-    fprintf(fd, "%s:%s:%d:%s:%s:%s", user.u_comment, user.u_password, user.u_uid,
+    int fd = open("/etc/passwd", O_WRONLY | O_CREAT | O_APPEND);
+    fprintf(fd, "%s:%s:%d:%d:%s:%s\n", user.u_comment, user.u_password, user.u_uid,
             user.u_primgrp, user.u_home, user.u_shell);
 }
 
@@ -67,7 +120,11 @@ fillargs(int argc, char** argv) {
             if (!res) continue;
             if (i + 1 == argc || argv[i + 1][0] == '-') return 1;
             if (res == 'u') {
-                user.u_uid = (uid_t)strtol(argv[i + 1], NULL, 10);
+                uid_t uid = (uid_t)strtol(argv[i + 1], NULL, 10);
+                if (uid > 0 && uid < UID_MAX)
+                    user.u_uid = uid;
+                else
+                    printf("UID should be > 1 and < %d", UID_MAX);
             }
             if (res == 'p') {
                 int len = strlen(argv[i + 1]) > PASSLEN_MAX ? PASSLEN_MAX : strlen(argv[i + 1]);
@@ -85,9 +142,9 @@ fillargs(int argc, char** argv) {
                 user.u_home[len] = 0;
             }
             if (res == 'g') {
-                int len = strlen(argv[i + 1]) > GROUPLEN_MAX ? GROUPLEN_MAX : strlen(argv[i + 1]);
-                strncpy(user.u_primgrp, argv[i + 1], len);
-                user.u_primgrp[len] = 0;
+                gid_t gid = (gid_t)strtol(argv[i + 1], NULL, 10);
+                if (gid > 0 && gid < UID_MAX)
+                    user.u_primgrp = user.u_uid;
             }
         }
     }

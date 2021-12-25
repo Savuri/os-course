@@ -6,10 +6,10 @@ typedef struct range_t {
     uid_t r_to;   /* high uid */
 } range_t;
 
-#define COMMENTLEN_MAX 64
+#define COMMENTLEN_MAX 32
 #define PATHLEN_MAX    64
 #define PASSLEN_MAX    64
-#define GROUPLEN_MAX   64
+#define UID_MAX        1024
 
 typedef struct user_t {
     int u_flags;                       /* see below */
@@ -17,7 +17,7 @@ typedef struct user_t {
     char u_password[PASSLEN_MAX];      /* encrypted password */
     char u_comment[COMMENTLEN_MAX];    /* comment field */
     char u_home[PATHLEN_MAX];          /* home directory */
-    char u_primgrp[GROUPLEN_MAX];      /* primary group */
+    gid_t u_primgrp;                   /* primary group */
     int u_groupc;                      /* # of secondary groups */
     const char *u_groupv[NGROUPS_MAX]; /* secondary groups */
     char u_shell[PATHLEN_MAX];         /* user's shell */
