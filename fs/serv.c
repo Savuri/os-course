@@ -225,8 +225,7 @@ serve_read(envid_t envid, union Fsipc *ipc) {
     struct OpenFile *openFile;
     int res;
     if ((res = openfile_lookup(envid, req->req_fileid, &openFile)) < 0) return res;
-
-
+    
     ssize_t n = file_read(openFile->o_file, ipc->readRet.ret_buf, req->req_n, openFile->o_fd->fd_offset);
     if (n < 0) return n;
 
