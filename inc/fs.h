@@ -51,13 +51,13 @@ typedef uint32_t blockno_t;
 #define S_IXOTH (S_IXGRP >> 3) /* Execute by others.  */
 #define S_IRWXO (S_IRWXG >> 3) /* Read, write, and execute by others.  */
 
-typedef uint16_t permission_t;
+typedef uint16_t permission_t; // TODO: rename to understandable mode_t
 
 struct Fcred {
     uid_t fc_uid;
     gid_t fc_gid;
 
-    permission_t fc_permission;
+    permission_t fc_permission; // TODO: rename to understandable fc_mode
 };
 
 struct File {
@@ -70,10 +70,12 @@ struct File {
     blockno_t f_direct[NDIRECT]; /* direct blocks */
     blockno_t f_indirect;        /* indirect block */
 
+    struct File *parent; /* for files - their dir, for dir - parent dir. */
+
     struct Fcred f_cred;
     /* Pad out to 256 bytes; must do arithmetic in case we're compiling
      * fsformat on a 64-bit machine. */
-    uint8_t f_pad[256 - MAXNAMELEN - 8 - 4 * NDIRECT - 4 - sizeof(struct Fcred)];
+    uint8_t f_pad[256 - MAXNAMELEN - 8 - 4 * NDIRECT - 4 - sizeof(struct Fcred) - sizeof(struct File *)];
 } __attribute__((packed)); /* required only on some 64-bit machines */
 
 /* An inode block contains exactly BLKFILES 'struct File's */

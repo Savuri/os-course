@@ -26,6 +26,11 @@
  *    environment IDs in the kernel.  Use openfile_lookup to translate
  *    file IDs to struct OpenFile. */
 
+/*
+ * TODO: вынести в какой-то .h. этот enum, скорее всего, нужен будет
+ * в других файла
+ */
+
 struct OpenFile {
     uint32_t o_fileid;   /* file id */
     struct File *o_file; /* mapped descriptor for open file */
@@ -109,9 +114,16 @@ serve_open(envid_t envid, struct Fsreq_open *req,
         return res;
     }
 
+    /* Create dir */
+    if (req->req_omode & O_MKDIR) {
+        if ((res = file_create(path, &f, FTYPE_DIR)) < 0) {
+            return res;
+        }
+    }
+
     /* Open the file */
     if (req->req_omode & O_CREAT) {
-        if ((res = file_create(path, &f)) < 0) {
+        if ((res = file_create(path, &f, FTYPE_REG)) < 0) {
             if (!(req->req_omode & O_EXCL) && res == -E_FILE_EXISTS)
                 goto try_open;
             if (debug) cprintf("file_create failed: %i", res);
@@ -182,6 +194,20 @@ serve_set_size(envid_t envid, union Fsipc *ipc) {
     return file_set_size(o->o_file, req->req_size);
 }
 
+/*
+ *
+ */
+int
+serve_remove(envid_t envid, union Fsipc *ipc) {
+    struct Fsreq_remove *req = &ipc->remove;
+
+    if (debug) {
+        cprintf("server_remove %08x %s\n", envid, req->req_path);
+    }
+
+    return file_remove(req->req_path);
+}
+
 /* Read at most ipc->read.req_n bytes from the current seek position
  * in ipc->read.req_fileid.  Return the bytes read from the file to
  * the caller in ipc->readRet, then update the seek position.  Returns
@@ -199,7 +225,6 @@ serve_read(envid_t envid, union Fsipc *ipc) {
     struct OpenFile *openFile;
     int res;
     if ((res = openfile_lookup(envid, req->req_fileid, &openFile)) < 0) return res;
-
     ssize_t n = file_read(openFile->o_file, ipc->readRet.ret_buf, req->req_n, openFile->o_fd->fd_offset);
     if (n < 0) return n;
 
@@ -280,7 +305,8 @@ fshandler handlers[] = {
         [FSREQ_FLUSH] = serve_flush,
         [FSREQ_WRITE] = serve_write,
         [FSREQ_SET_SIZE] = serve_set_size,
-        [FSREQ_SYNC] = serve_sync};
+        [FSREQ_SYNC] = serve_sync,
+        [FSREQ_REMOVE] = serve_remove};
 #define NHANDLERS (sizeof(handlers) / sizeof(handlers[0]))
 
 void

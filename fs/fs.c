@@ -154,7 +154,7 @@ file_block_walk(struct File *f, blockno_t filebno, blockno_t **ppdiskbno, bool a
         blockno_t blockno = alloc_block();
         if (!blockno) return -E_NO_DISK;
 
-        f->f_indirect = blockno; // ?
+        f->f_indirect = blockno;
         memset(diskaddr(f->f_indirect), 0, BLKSIZE);
     }
 
@@ -321,7 +321,7 @@ walk_path(const char *path, struct File **pdir, struct File **pf, char *lastelem
 /* Create "path".  On success set *pf to point at the file and return 0.
  * On error return < 0. */
 int
-file_create(const char *path, struct File **pf) {
+file_create(const char *path, struct File **pf, int type) {
     char name[MAXNAMELEN];
     int res;
     struct File *dir, *filp;
@@ -331,6 +331,8 @@ file_create(const char *path, struct File **pf) {
     if ((res = dir_alloc_file(dir, &filp)) < 0) return res;
 
     strcpy(filp->f_name, name);
+    filp->parent = dir;
+    filp->f_type = type;
     *pf = filp;
     file_flush(dir);
     return 0;
@@ -440,6 +442,61 @@ file_set_size(struct File *f, off_t newsize) {
     f->f_size = newsize;
     flush_block(f);
     return 0;
+}
+
+/*
+ * remove "path"
+ * return 0 on success
+ * return < 0 on error
+ */
+int
+file_remove(const char *path) {
+    struct File *rm_file, *dir;
+    char last;
+
+    int ret;
+    if ((ret = walk_path(path, &dir, &rm_file, &last)) < 0) {
+        return ret;
+    }
+
+    if (rm_file->f_type == FTYPE_DIR) {
+        if (rm_file->f_size != 0) {
+            return -E_NOT_EMPTY;
+        }
+
+        assert(strcmp(rm_file->f_name, "/") != 0); // Костыль пока права не настроем. Потом удаление корня с нужными правами разрешим (наверно)
+    } else if (rm_file->f_type == FTYPE_REG) {
+        file_set_size(rm_file, 0);
+    } else {
+        panic("Unexpected filetype in rm_file remove\n");
+    }
+
+    assert(dir->f_size != 0); // если правильно поинмаю код то это так
+
+    // move last block to free space (to keep actual f_size without segmentation)
+    blockno_t nblock = dir->f_size / BLKSIZE;
+    cprintf("nblock %d\n", nblock);
+    for (blockno_t i = nblock - 1; i >= 0; i--) {
+        blockno_t *blockno;
+        if ((file_block_walk(dir, i, &blockno, 0)) < 0) {
+            panic("file_block_walk in remove");
+        }
+        cprintf("FS: block:%d\n", *blockno);
+        struct File *f = (struct File *)diskaddr(*blockno);
+        for (blockno_t j = BLKFILES - 1; j >= 0; j--) {
+            if (f[j].f_name[0] != '\0' || (i == 0 && j == 0)) {
+                memmove(rm_file, &f[j], sizeof(struct File));
+                f[j].f_name[0] = '\0';
+
+                if (j == 0) {
+                    *blockno = 0;
+                    dir->f_size -= BLKSIZE;
+                }
+
+                return 0;
+            }
+        }
+    }
 }
 
 /* Flush the contents and metadata of file f out to disk.
