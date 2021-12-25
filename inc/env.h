@@ -7,6 +7,7 @@
 #include <inc/trap.h>
 #include <inc/memlayout.h>
 #include <inc/ucred.h>
+#include <inc/fs.h>
 
 typedef int32_t envid_t;
 
@@ -86,6 +87,8 @@ struct Env {
 
     /* ITASK */
     struct Ucred env_ucred;
+
+    char current_path[MAXPATHLEN];
 };
 
 #endif /* !JOS_INC_ENV_H */
