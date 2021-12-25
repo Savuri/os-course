@@ -41,6 +41,8 @@ struct OpenFile opentab[MAXOPEN] = {
 /* Virtual address at which to receive page mappings containing client requests. */
 union Fsipc *fsreq = (union Fsipc *)0x0FFFF000;
 
+struct Ucred ucred;
+
 void
 serve_init(void) {
     uintptr_t va = FILE_BASE;
@@ -327,8 +329,6 @@ serve(void) {
         perm = 0;
         size_t sz = PAGE_SIZE;
         req = ipc_recv((int32_t *)&whom, fsreq, &sz, &perm);
-        struct Ucred ucred = envs[whom].env_ucred; // TODO:Получить безопасно
-        memset(&ucred, 0, sizeof (struct Ucred)); //TODO:DEBUG
         if (debug) {
             cprintf("fs req %d from %08x [page %08lx: %s]\n",
                     req, whom, (unsigned long)get_uvpt_entry(fsreq),
@@ -364,7 +364,7 @@ umain(int argc, char **argv) {
     /* Check that we are able to do I/O */
     outw(0x8A00, 0x8A00);
     cprintf("FS can do I/O\n");
-
+    memset(&ucred, 0, sizeof(struct Ucred));
     serve_init();
     fs_init();
     fs_test();
