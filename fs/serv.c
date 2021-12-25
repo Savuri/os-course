@@ -156,7 +156,6 @@ serve_open(envid_t envid, struct Fsreq_open *req,
     o->o_fd->fd_file.id = o->o_fileid;
     o->o_fd->fd_omode = req->req_omode & O_ACCMODE;
     o->o_fd->fd_dev_id = devfile.dev_id;
-    o->o_mode = req->req_omode;
 
     if (debug) cprintf("sending success, page %08lx\n", (unsigned long)o->o_fd);
 
@@ -189,7 +188,7 @@ serve_set_size(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
     if ((r = openfile_lookup(envid, req->req_fileid, &o)) < 0)
         return r;
 
-    if (!(o->o_mode & O_WRONLY)) return -E_ACCES;
+    if ((o->o_fd->fd_omode & O_ACCMODE) == O_RDONLY) return -E_ACCES;
 
     /* Second, call the relevant file system function (from fs/fs.c).
      * On failure, return the error code to the client. */
@@ -227,8 +226,8 @@ serve_read(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
     struct OpenFile *openFile;
     int res;
     if ((res = openfile_lookup(envid, req->req_fileid, &openFile)) < 0) return res;
-    if (!(openFile->o_mode & O_RDONLY)) return -E_ACCES;
 
+    if ((openFile->o_fd->fd_omode & O_ACCMODE) == O_WRONLY) return -E_ACCES;
     ssize_t n = file_read(openFile->o_file, ipc->readRet.ret_buf, req->req_n, openFile->o_fd->fd_offset);
     if (n < 0) return n;
 
@@ -251,7 +250,7 @@ serve_write(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
     struct OpenFile *o;
     int res = openfile_lookup(envid, req->req_fileid, &o);
     if (res < 0) return res;
-    if (!(o->o_mode & O_WRONLY)) return -E_ACCES;
+    if ((o->o_fd->fd_omode & O_ACCMODE) == O_RDONLY) return -E_ACCES;
 
     ssize_t n = file_write(o->o_file, req->req_buf, req->req_n, o->o_fd->fd_offset);
     if (n < 0) return n;
@@ -272,7 +271,7 @@ serve_stat(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
     struct OpenFile *o;
     int res = openfile_lookup(envid, req->req_fileid, &o);
     if (res < 0) return res;
-    if (!(o->o_mode & O_RDONLY)) return -E_ACCES;
+    if ((o->o_fd->fd_omode & O_ACCMODE) == O_WRONLY) return -E_ACCES;
 
     strcpy(ret->ret_name, o->o_file->f_name);
     ret->ret_size = o->o_file->f_size;
@@ -290,7 +289,7 @@ serve_flush(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
     struct OpenFile *o;
     int res = openfile_lookup(envid, req->req_fileid, &o);
     if (res < 0) return res;
-    if (!(o->o_mode & O_WRONLY)) return -E_ACCES;
+    if ((o->o_mode & O_ACCMODE) == O_RDONLY) return -E_ACCES;
 
     file_flush(o->o_file);
     return 0;
