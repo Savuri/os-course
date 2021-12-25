@@ -328,7 +328,7 @@ serve(void) {
         size_t sz = PAGE_SIZE;
         req = ipc_recv((int32_t *)&whom, fsreq, &sz, &perm);
         struct Ucred ucred = envs[whom].env_ucred; // TODO:Получить безопасно
-        
+        memset(&ucred, 0, sizeof (struct Ucred)); //TODO:DEBUG
         if (debug) {
             cprintf("fs req %d from %08x [page %08lx: %s]\n",
                     req, whom, (unsigned long)get_uvpt_entry(fsreq),
