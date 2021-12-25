@@ -141,6 +141,7 @@ ssize_t readn(int fd, void *buf, size_t nbytes);
 int dup(int oldfd, int newfd);
 int fstat(int fd, struct Stat *statbuf);
 int stat(const char *path, struct Stat *statbuf);
+void NormalizePath(char cur_dir[MAXPATHLEN], char path[MAXPATHLEN]);
 
 /* file.c */
 int open(const char *path, int mode);
