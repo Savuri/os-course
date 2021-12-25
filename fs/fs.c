@@ -475,7 +475,6 @@ file_remove(const char *path) {
 
     // move last block to free space (to keep actual f_size without segmentation)
     blockno_t nblock = dir->f_size / BLKSIZE;
-    cprintf("nblock %d\n", nblock);
     for (blockno_t i = nblock - 1; i >= 0; i--) {
         blockno_t *blockno;
         if ((file_block_walk(dir, i, &blockno, 0)) < 0) {

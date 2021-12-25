@@ -119,6 +119,8 @@ serve_open(envid_t envid, struct Fsreq_open *req,
         if ((res = file_create(path, &f, FTYPE_DIR)) < 0) {
             return res;
         }
+
+        return 0;
     }
 
     /* Open the file */
