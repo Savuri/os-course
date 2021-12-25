@@ -614,6 +614,10 @@ sys_getegid() {
  */
 int
 sys_getenvcurpath(char buf[MAXPATHLEN], envid_t envid) {
+    if (envid == 0) {
+        strncpy(buf, curenv->current_path, MAXPATHLEN);
+        return 0;
+    }
     struct Env* env = &envs[ENVX(envid)];
     if (env->env_status == ENV_FREE || env->env_id != envid) {
         return -E_BAD_ENV;
