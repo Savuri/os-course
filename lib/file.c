@@ -187,11 +187,10 @@ devfile_trunc(struct Fd *fd, off_t newsize) {
 }
 
 /*change current directory*/
-void
-cd(const char *path) {
+int
+chdir(const char *path) {
     if (strlen(path) >= MAXPATHLEN) {
-        cprintf("Path is too long");
-        return;
+        return -E_BAD_PATH;
     }
 
     char req_path[MAXPATHLEN];
@@ -202,16 +201,10 @@ cd(const char *path) {
 
     strncpy(fsipcbuf.accessdir.req_path, req_path, MAXPATHLEN);
     int res = fsipc(FSREQ_ACCESSDIR, NULL);
-    if (!res) {
-        sys_setenvcurpath(req_path);
-        return;
+    if (res) {
+        return res;
     }
-
-    if (res == -E_ACCES) {
-        cprintf("permission denied\n");
-    } else {
-        cprintf("directory %s does not exist\n", path);
-    }    
+    return sys_setenvcurpath(req_path);
 }
 
 /* Synchronize disk with buffer cache */
