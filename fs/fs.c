@@ -640,3 +640,67 @@ fs_sync(void) {
         flush_block(diskaddr(i));
     }
 }
+
+/*
+ * return 0 on success
+ * otherwise < 0
+ */
+int file_chmod(const char *path, permission_t perm, const struct Ucred *ucred) {
+    struct File *dir, *file;
+    char last;
+
+    int res;
+    if ((res = walk_path(path, &dir, &file, &last, ucred)) < 0) {
+        return res;
+    }
+
+    if ((res = access(file->f_type, file->f_cred, WRITE, ucred) < 0)) {
+        return res;
+    }
+
+    file->f_cred.fc_permission = perm;
+}
+
+
+/*
+ * return 0 on success
+ * otherwise < 0
+ */
+int file_chown(const char *path, uid_t uid, const struct Ucred *ucred) {
+    struct File *dir, *file;
+    char last;
+
+    int res;
+    if ((res = walk_path(path, &dir, &file, &last, ucred)) < 0) {
+        return res;
+    }
+
+    if ((res = access(file->f_type, file->f_cred, WRITE, ucred) < 0)) {
+        return res;
+    }
+
+    file->f_cred.fc_permission = uid;
+    return 0;
+}
+
+/*
+ * return 0 on success
+ * otherwise < 0
+ */
+int file_chgrp(const char *path, gid_t gid, const struct Ucred *ucred) {
+    struct File *dir, *file;
+    char last;
+
+    int res;
+    if ((res = walk_path(path, &dir, &file, &last, ucred)) < 0) {
+        return res;
+    }
+
+    if ((res = access(file->f_type, file->f_cred, WRITE, ucred) < 0)) {
+        return res;
+    }
+
+    file->f_cred.fc_permission = gid;
+
+    return 0;
+}
