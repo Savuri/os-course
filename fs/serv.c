@@ -119,7 +119,6 @@ serve_open(envid_t envid, struct Fsreq_open *req,
 
         return 0;
     }
-    cprintf("HERE\n");
     /* Open the file */
     if (req->req_omode & O_CREAT) {
         if ((res = file_create(path, &f, FTYPE_REG, ucred)) < 0) {
@@ -130,7 +129,7 @@ serve_open(envid_t envid, struct Fsreq_open *req,
         }
     } else {
     try_open:
-        if ((res = file_open(path, &f, ucred)) < 0) {
+        if ((res = file_open(path, &f, ucred, req->req_omode & O_ACCMODE)) < 0) {
             if (debug) cprintf("file_open failed: %i", res);
             return res;
         }
@@ -143,7 +142,7 @@ serve_open(envid_t envid, struct Fsreq_open *req,
             return res;
         }
     }
-    if ((res = file_open(path, &f, ucred)) < 0) {
+    if ((res = file_open(path, &f, ucred, req->req_omode & O_ACCMODE)) < 0) {
         if (debug) cprintf("file_open failed: %i", res);
         return res;
     }

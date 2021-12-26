@@ -71,11 +71,11 @@ fs_test(void) {
     struct Ucred ucred;
     memset(&ucred, 0, sizeof(ucred));
 
-    if ((r = file_open("/not-found", &f, &ucred)) < 0 && r != -E_NOT_FOUND)
+    if ((r = file_open("/not-found", &f, &ucred, O_RDONLY)) < 0 && r != -E_NOT_FOUND)
         panic("file_open /not-found: %i", r);
     else if (r == 0)
         panic("file_open /not-found succeeded!");
-    if ((r = file_open("/newmotd", &f, &ucred)) < 0)
+    if ((r = file_open("/newmotd", &f, &ucred, O_RDONLY)) < 0)
         panic("file_open /newmotd: %i", r);
     cprintf("file_open is good\n");
 
