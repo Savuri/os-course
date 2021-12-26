@@ -30,19 +30,14 @@ void
 gethome(char home[]) {
     int i;
     int cnt = 0;
-    for (i = 0; cnt != 4; i++) {
-        //printf("%c ", buf[i]);
+    for (i = 0; cnt != 4; i++)
         if (buf[i] == ':')
             cnt++;
-    }
     i++;
     int j = 0;
-    for (; buf[i] != ':'; i++, j++) {
-        printf("%c ", buf[i]);
+    for (; buf[i] != ':'; i++, j++)
         home[j] = buf[i];
-    }
     home[j] = 0;
-    //printf("home = %s\n", home);
 }
 
 /*
