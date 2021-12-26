@@ -26,6 +26,25 @@ getline(int fd) {
     return 1;
 }
 
+void
+gethome(char home[]) {
+    int i;
+    int cnt = 0;
+    for(i = 0; cnt != 4; i++){
+        //printf("%c ", buf[i]);
+        if(buf[i] == ':')
+            cnt++;
+    }
+    i++;
+    int j = 0;
+    for(; buf[i] != ':'; i++, j++){
+        printf("%c ", buf[i]);
+        home[j] = buf[i];
+    }
+    home[j] = 0;
+    //printf("home = %s\n", home);
+}
+
 /*
  *  Returns 1 if user should be deleted else 0
  */
@@ -36,8 +55,15 @@ isdeluser(char* name) {
         ;
     if (strncmp(name, buf, i))
         return 0;
-    if (r)
-        ; //delete userhome
+    if (r){
+        char home[PATHLEN_MAX];
+        gethome(home);
+        printf("home = %s\n", home);
+        const char *argv[3] = {"rm", home, NULL};
+        int r = spawn("rm", argv);
+        if(r >= 0)
+            wait(r);
+    }
     return 1;
 }
 
@@ -130,7 +156,7 @@ umain(int argc, char** argv) {
         switch (i) {
         case 'r':
             r = 1;
-            if (argc == 2) {
+            if (argc == 1) {
                 usage();
                 return;
             }

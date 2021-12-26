@@ -77,8 +77,9 @@ userinit() {
     user.u_uid = findfreeuid();
     if(user.u_uid == -1)
         exit();
-    strncpy(user.u_home, "/", 1);
-    user.u_home[1] = 0;
+    user.u_home[0] = '/';
+    strncpy(user.u_home+1, user.u_comment,
+        strlen(user.u_comment) > PATHLEN_MAX? PATHLEN_MAX : strlen(user.u_comment));
     user.u_primgrp = user.u_uid;
     strncpy(user.u_shell, "/sh", 3);
     user.u_shell[3] = 0;
@@ -102,6 +103,11 @@ useradd() {
     int fd = open("/etc/passwd", O_WRONLY | O_CREAT | O_APPEND);
     fprintf(fd, "%s:%s:%d:%d:%s:%s\n", user.u_comment, user.u_password, user.u_uid,
             user.u_primgrp, user.u_home, user.u_shell);
+    int r;
+    const char * args[3] = {"mkdir", user.u_home, NULL};
+    r = spawn(args[0], args);
+    if(r >= 0)
+        wait(r);
 }
 
 void
@@ -138,8 +144,10 @@ fillargs(int argc, char** argv) {
                 uid_t uid = (uid_t)strtol(argv[i + 1], NULL, 10);
                 if (uid > 0 && uid < UID_MAX)
                     user.u_uid = uid;
-                else
+                else {
                     printf("UID should be > 1 and < %d", UID_MAX);
+                    exit();
+                }
             }
             if (res == 'p') {
                 int len = strlen(argv[i + 1]) > PASSLEN_MAX ? PASSLEN_MAX : strlen(argv[i + 1]);
@@ -155,6 +163,10 @@ fillargs(int argc, char** argv) {
                 int len = strlen(argv[i + 1]) > PATHLEN_MAX ? PATHLEN_MAX : strlen(argv[i + 1]);
                 strncpy(user.u_home, argv[i + 1], len);
                 user.u_home[len] = 0;
+                if(!strcmp("/", user.u_home)) {
+                    printf("Homepath could not be /\n");
+                    exit();
+                }
             }
             if (res == 'g') {
                 gid_t gid = (gid_t)strtol(argv[i + 1], NULL, 10);
@@ -163,18 +175,25 @@ fillargs(int argc, char** argv) {
             }
         }
     }
+    return 0;
+}
+
+void
+fillname(int argc, char** argv) {
     if (argv[argc - 1][0] != '-' && !(strpbrk(argv[argc - 2], "bpgus") && strpbrk(argv[argc - 2], "-"))) {
         int len = strlen(argv[argc - 1]) > COMMENTLEN_MAX ? COMMENTLEN_MAX : strlen(argv[argc - 1]);
         strncpy(user.u_comment, argv[argc - 1], len);
         user.u_comment[len] = 0;
     }
-    return 0;
+    else
+        usage();
 }
 
 void
 umain(int argc, char** argv) {
     int i;
     struct Argstate args;
+    fillname(argc, argv);
     userinit();
     if (fillargs(argc, argv))
         usage();
