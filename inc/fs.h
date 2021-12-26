@@ -109,9 +109,8 @@ enum {
     FSREQ_SYNC,
     FSREQ_CHMOD,
     FSREQ_CHOWN,
-    FSREQ_CHGRP
-    FSREQ_ACCESSDIR,
-    FSREQ_SYNC
+    FSREQ_CHGRP,
+    FSREQ_ACCESSDIR
 };
 
 union Fsipc {
