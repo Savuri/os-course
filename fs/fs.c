@@ -284,8 +284,8 @@ groupmember(gid_t gid, const struct Ucred *cred) {
 
 /* type      - FTYPE_REG or FTYPE_DIR
  * file_mode - file's permissions
- * uid       - file's creator uid
- * gid       - file's creator gid
+ * req_uid       - file's creator req_uid
+ * req_gid       - file's creator req_gid
  * acc_mode  - acc_type for operation
  * cred      - user's process credentials
  *
@@ -673,6 +673,8 @@ int file_chmod(const char *path, permission_t perm, const struct Ucred *ucred) {
     }
 
     file->f_cred.fc_permission = perm;
+
+    return 0;
 }
 
 

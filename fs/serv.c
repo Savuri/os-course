@@ -310,29 +310,29 @@ int
 serve_chmod(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
     struct Fsreq_chmod *req = &ipc->chmod;
 
-    return file_chmod(req->req_path, req->perm, ucred);
+    return file_chmod(req->req_path, req->req_perm, ucred);
 }
 
 /*
- * this function is SET owner(uid) of file.
+ * this function is SET owner(req_uid) of file.
  * ret < 0 - error
  * ret = 0 - ok
  */
 int serve_chown(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred){
     struct Fsreq_chown *req = &ipc->chown;
 
-    return file_chown(req->req_path, req->uid, ucred);
+    return file_chown(req->req_path, req->req_uid, ucred);
 }
 
 /*
- * this function is SET group(gid) of file.
+ * this function is SET group(req_gid) of file.
  * ret < 0 - error
  * ret = 0 - ok
  */
 int serve_chgrp(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
     struct Fsreq_chgrp *req = &ipc->chgrp;
 
-    return file_chgrp(req->req_path, req->gid, ucred);
+    return file_chgrp(req->req_path, req->req_gid, ucred);
 }
 
 typedef int (*fshandler)(envid_t envid, union Fsipc *req, const struct Ucred *ucred);

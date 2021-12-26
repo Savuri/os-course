@@ -90,6 +90,85 @@ open(const char *path, int mode) {
     return fd2num(fd);
 }
 
+/*
+ * path of file to change ownership
+ * uid - uid_t value to set
+ * ok - ret 0
+ * otherwise < 0
+ */
+int
+chown(const char *path, uid_t uid) {
+    if (strlen(path) >= MAXPATHLEN) {
+        return -E_BAD_PATH;
+    }
+
+
+    // Вместо if(1) проверка что такой юзер существует добавить мб код ошибки (ну или мб просто E_INVAL)
+    if (1) {
+
+    }
+
+    char tmp_path[MAXPATHLEN];
+    strncpy(tmp_path, path, MAXPATHLEN);
+    sys_getenvcurpath(fsipcbuf.chown.req_path, 0);
+    NormalizePath(fsipcbuf.chown.req_path, tmp_path);
+
+    fsipcbuf.chown.req_uid = uid;
+
+    return fsipc(FSREQ_CHOWN, NULL);
+}
+
+/*
+ * path of file to change group
+ * gid - uid_t value to set
+ * ok - ret 0
+ * otherwise < 0
+ */
+int
+chgrp(const char *path, gid_t gid) {
+    if (strlen(path) >= MAXPATHLEN) {
+        return -E_BAD_PATH;
+    }
+
+    // Вместо if(1) проверка, что такая группа существует + добавить мб код ошибки (ну или мб просто E_INVAL)
+    if (1) {
+
+    }
+
+    char tmp_path[MAXPATHLEN];
+    strncpy(tmp_path, path, MAXPATHLEN);
+    sys_getenvcurpath(fsipcbuf.chgrp.req_path, 0);
+    NormalizePath(fsipcbuf.chgrp.req_path, tmp_path);
+
+
+    fsipcbuf.chgrp.req_gid = gid;
+
+    return fsipc(FSREQ_CHGRP, NULL);
+}
+
+/*
+ * path of file to change permission
+ * ok - ret 0
+ * otherwise < 0
+ */
+int
+chmod(const char *path, permission_t permission) {
+    if (strlen(path) >= MAXPATHLEN) {
+        return -E_BAD_PATH;
+    }
+
+    permission &= 0xdff; // get only permission bits
+
+    char tmp_path[MAXPATHLEN];
+    strncpy(tmp_path, path, MAXPATHLEN);
+    sys_getenvcurpath(fsipcbuf.chmod.req_path, 0);
+    NormalizePath(fsipcbuf.chmod.req_path, tmp_path);
+
+    fsipcbuf.chmod.req_perm = permission;
+
+    return fsipc(FSREQ_CHMOD, NULL);
+}
+
 int
 remove(const char *path) {
     if (strlen(path) >= MAXPATHLEN) {

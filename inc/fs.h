@@ -150,15 +150,15 @@ union Fsipc {
     } remove;
     struct Fsreq_chmod {
         char req_path[MAXPATHLEN];
-        permission_t perm;
+        permission_t req_perm;
     } chmod;
     struct Fsreq_chown {
         char req_path[MAXPATHLEN];
-        uid_t uid;
+        uid_t req_uid;
     } chown;
     struct Fsreq_chgrp {
         char req_path[MAXPATHLEN];
-        gid_t gid;
+        gid_t req_gid;
     } chgrp;
     /* Ensure Fsipc is one page */
     char _pad[PAGE_SIZE];
