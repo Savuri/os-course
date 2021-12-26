@@ -121,6 +121,8 @@ KERN_BINFILES :=	user/hello \
 			user/bounds \
 			user/implicitconv \
 			user/signedoverflow \
+			user/useradd \
+			user/userdel \
             user/rm \
             user/mkdir \
             user/seteuid \
