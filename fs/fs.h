@@ -31,7 +31,7 @@ void fs_init(void);
 int file_get_block(struct File *f, uint32_t file_blockno, char **pblk);
 int file_create(const char *path, struct File **f, int type, const struct Ucred *ucred);
 int file_block_walk(struct File *f, uint32_t filebno, uint32_t **ppdiskbno, bool alloc);
-int file_open(const char *path, struct File **f, const struct Ucred *ucred);
+int file_open(const char *path, struct File **f, const struct Ucred *ucred, int mode);
 ssize_t file_read(struct File *f, void *buf, size_t count, off_t offset);
 ssize_t file_write(struct File *f, const void *buf, size_t count, off_t offset);
 int file_set_size(struct File *f, off_t newsize);
