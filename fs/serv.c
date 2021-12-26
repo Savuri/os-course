@@ -362,7 +362,7 @@ fshandler handlers[] = {
         [FSREQ_REMOVE] = serve_remove,
         [FSREQ_CHMOD] = serve_chmod,
         [FSREQ_CHOWN] = serve_chown,
-        [FSREQ_CHGRP] = serve_chgrp};
+        [FSREQ_CHGRP] = serve_chgrp,
         [FSREQ_ACCESSDIR] = serve_accessdir};
 #define NHANDLERS (sizeof(handlers) / sizeof(handlers[0]))
 
