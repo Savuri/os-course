@@ -13,6 +13,7 @@ size_t strlcat(char *restrict dst, const char *restrict src, size_t maxlen);
 int strcmp(const char *s1, const char *s2);
 int strncmp(const char *s1, const char *s2, size_t size);
 char *strchr(const char *s, int c);
+char *strrchr(const char *s, int c);
 char *strfind(const char *s, int c);
 
 void *memset(void *dst, int c, size_t len);

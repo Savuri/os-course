@@ -14,7 +14,9 @@ FSIMGTXTFILES :=	fs/load/newmotd \
 			fs/load/lorem \
 			fs/load/script \
 			fs/load/testshell.key \
-			fs/load/testshell.sh
+			fs/load/testshell.sh \
+			fs/load/read-only \
+			fs/load/write-only \
 
 USERAPPS :=		$(OBJDIR)/user/init \
 			$(OBJDIR)/user/cat \
@@ -36,6 +38,13 @@ USERAPPS :=		$(OBJDIR)/user/init \
 			$(OBJDIR)/user/vdate \
 			$(OBJDIR)/user/useradd \
 			$(OBJDIR)/user/userdel \
+			$(OBJDIR)/user/rm \
+			$(OBJDIR)/user/mkdir \
+		  $(OBJDIR)/user/seteuid \
+      $(OBJDIR)/user/setuid \
+      $(OBJDIR)/user/setgid \
+      $(OBJDIR)/user/setegid \
+			$(OBJDIR)/user/testfsrwonly \
 
 
 FSIMGFILES := $(FSIMGTXTFILES) $(USERAPPS) $(FSIMGDIRS)

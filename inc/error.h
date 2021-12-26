@@ -19,6 +19,7 @@ enum {
     E_NO_ENT = 10,       /* Not found */
     E_IPC_NOT_RECV = 11, /* Attempt to send to env that is not recving */
     E_EOF = 12,          /* Unexpected end of file */
+
     /* File system error codes -- only seen in user-level */
     E_NO_DISK = 13,     /* No free space left on disk */
     E_MAX_OPEN = 14,    /* Too many files are open */
@@ -27,6 +28,11 @@ enum {
     E_FILE_EXISTS = 17, /* File already exists */
     E_NOT_EXEC = 18,    /* File not a valid executable */
     E_NOT_SUPP = 19,    /* Operation not supported */
+
+    /* ITASK error codes */
+    E_PERM = 20,      /* Operation not permitted */
+    E_NOT_EMPTY = 21, /* FS: Dir is not empty */
+    E_ACCES = 22,
     MAXERROR
 };
 

@@ -154,7 +154,7 @@ file_block_walk(struct File *f, blockno_t filebno, blockno_t **ppdiskbno, bool a
         blockno_t blockno = alloc_block();
         if (!blockno) return -E_NO_DISK;
 
-        f->f_indirect = blockno; // ?
+        f->f_indirect = blockno;
         memset(diskaddr(f->f_indirect), 0, BLKSIZE);
     }
 
@@ -259,6 +259,84 @@ skip_slash(const char *p) {
     return p;
 }
 
+/*
+ * Check if gid is a member of the group set.
+ * 0 - file group is not in user groups
+ * 1 - file group is in user groups
+ */
+int
+groupmember(gid_t gid, const struct Ucred *cred) {
+    if (cred->cr_gid == gid)
+        return 1;
+
+    const gid_t *gp = cred->cr_groups;
+    const gid_t *egp = &(cred->cr_groups[cred->cr_ngroups]);
+
+    while (gp < egp) {
+        if (*gp == gid)
+            return 1;
+
+        gp++;
+    }
+
+    return 0;
+}
+
+/* type      - FTYPE_REG or FTYPE_DIR
+ * file_mode - file's permissions
+ * uid       - file's creator uid
+ * gid       - file's creator gid
+ * acc_mode  - acc_type for operation
+ * cred      - user's process credentials
+ *
+ * return 0 if accessible
+ * otherwise return -E_ACCES
+ *
+ */
+int
+access(uint32_t type, struct Fcred fcred, int acc_mode, const struct Ucred *cred) {
+    /* User id 0 always gets read/write access. */
+    if (cred->cr_uid == 0) {
+        /* For EXEC, at least one of the execute bits must be set. */
+        if ((acc_mode & EXEC) && type != FTYPE_DIR && (fcred.fc_permission & (S_IXUSR | S_IXGRP | S_IXOTH)) == 0)
+            return -E_ACCES;
+        return 0;
+    }
+
+    permission_t mask = 0;
+
+    /* Otherwise, check the owner. */
+    if (cred->cr_uid == fcred.fc_uid) {
+        if (acc_mode & EXEC)
+            mask |= S_IXUSR;
+        if (acc_mode & READ)
+            mask |= S_IRUSR;
+        if (acc_mode & WRITE)
+            mask |= S_IWUSR;
+        return (fcred.fc_permission & mask) == mask ? 0 : -E_ACCES;
+    }
+
+    /* Otherwise, check the groups. */
+    if (groupmember(fcred.fc_gid, cred)) {
+        if (acc_mode & EXEC)
+            mask |= S_IXGRP;
+        if (acc_mode & READ)
+            mask |= S_IRGRP;
+        if (acc_mode & WRITE)
+            mask |= S_IWGRP;
+        return (fcred.fc_permission & mask) == mask ? 0 : -E_ACCES;
+    }
+
+    /* Otherwise, check everyone else. */
+    if (acc_mode & EXEC)
+        mask |= S_IXOTH;
+    if (acc_mode & READ)
+        mask |= S_IROTH;
+    if (acc_mode & WRITE)
+        mask |= S_IWOTH;
+    return (fcred.fc_permission & mask) == mask ? 0 : -E_ACCES;
+}
+
 /* Evaluate a path name, starting at the root.
  * On success, set *pf to the file we found
  * and set *pdir to the directory the file is in.
@@ -266,7 +344,7 @@ skip_slash(const char *p) {
  * it should be in, set *pdir and copy the final path
  * element into lastelem. */
 static int
-walk_path(const char *path, struct File **pdir, struct File **pf, char *lastelem) {
+walk_path(const char *path, struct File **pdir, struct File **pf, char *lastelem, const struct Ucred *ucred) {
     const char *p;
     char name[MAXNAMELEN];
     struct File *dir, *f;
@@ -284,6 +362,14 @@ walk_path(const char *path, struct File **pdir, struct File **pf, char *lastelem
     *pf = 0;
     while (*path != '\0') {
         dir = f;
+
+        // checking execute bit for cur dir
+        // can't push pointer because of pointer align of packed struct
+        int res;
+        if ((res = access(dir->f_type, dir->f_cred, EXEC, ucred)) != 0) {
+            return res;
+        }
+
         p = path;
         while (*path != '/' && *path != '\0')
             path++;
@@ -321,16 +407,33 @@ walk_path(const char *path, struct File **pdir, struct File **pf, char *lastelem
 /* Create "path".  On success set *pf to point at the file and return 0.
  * On error return < 0. */
 int
-file_create(const char *path, struct File **pf) {
+file_create(const char *path, struct File **pf, int type, const struct Ucred *ucred) {
     char name[MAXNAMELEN];
     int res;
     struct File *dir, *filp;
 
-    if (!(res = walk_path(path, &dir, &filp, name))) return -E_FILE_EXISTS;
+    if (!(res = walk_path(path, &dir, &filp, name, ucred))) return res;
     if (res != -E_NOT_FOUND || dir == 0) return res;
     if ((res = dir_alloc_file(dir, &filp)) < 0) return res;
 
+
+    if ((res = access(dir->f_type, dir->f_cred, WRITE, ucred)) != 0) {
+        return res;
+    }
+
     strcpy(filp->f_name, name);
+    filp->parent = dir;
+    filp->f_type = type;
+    filp->f_cred.fc_uid = ucred->cr_uid;
+    filp->f_cred.fc_gid = ucred->cr_gid;
+
+
+    if (filp->f_type == FTYPE_DIR) {
+        filp->f_cred.fc_permission = S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;
+    } else {
+        filp->f_cred.fc_permission = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP;
+    }
+
     *pf = filp;
     file_flush(dir);
     return 0;
@@ -339,8 +442,17 @@ file_create(const char *path, struct File **pf) {
 /* Open "path".  On success set *pf to point at the file and return 0.
  * On error return < 0. */
 int
-file_open(const char *path, struct File **pf) {
-    return walk_path(path, 0, pf, 0);
+file_open(const char *path, struct File **pf, const struct Ucred *ucred) {
+    int res;
+    if ((res = walk_path(path, 0, pf, 0, ucred)) < 0) {
+        return res;
+    }
+
+    if ((res = access((*pf)->f_type, (*pf)->f_cred, READ, ucred)) < 0) {
+        return res;
+    }
+
+    return 0;
 }
 
 /* Read count bytes from f into buf, starting from seek position
@@ -440,6 +552,66 @@ file_set_size(struct File *f, off_t newsize) {
     f->f_size = newsize;
     flush_block(f);
     return 0;
+}
+
+/*
+ * remove "path"
+ * return 0 on success
+ * return < 0 on error
+ */
+int
+file_remove(const char *path, const struct Ucred *ucred) {
+    struct File *rm_file, *dir;
+    char last;
+
+    int ret;
+    if ((ret = walk_path(path, &dir, &rm_file, &last, ucred)) < 0) {
+        return ret;
+    }
+
+    assert(strcmp(rm_file->f_name, "/") != 0);
+
+    if ((ret = access(dir->f_type, dir->f_cred, WRITE, ucred)) < 0) {
+        return ret;
+    }
+
+    // to delete a file, no permission checking of the file itself is needed.
+
+    if (rm_file->f_type == FTYPE_DIR) {
+        if (rm_file->f_size != 0) {
+            return -E_NOT_EMPTY;
+        }
+    } else if (rm_file->f_type == FTYPE_REG) {
+        file_set_size(rm_file, 0);
+    } else {
+        panic("Unexpected filetype in rm_file remove\n");
+    }
+
+    assert(dir->f_size != 0); // если правильно понимаю код то это так
+
+    // move last block to free space (to keep actual f_size without segmentation)
+    blockno_t nblock = dir->f_size / BLKSIZE;
+    for (blockno_t i = nblock - 1; i >= 0; i--) {
+        blockno_t *blockno;
+        if ((file_block_walk(dir, i, &blockno, 0)) < 0) {
+            panic("file_block_walk in remove");
+        }
+        cprintf("FS: block:%d\n", *blockno);
+        struct File *f = (struct File *)diskaddr(*blockno);
+        for (blockno_t j = BLKFILES - 1; j >= 0; j--) {
+            if (f[j].f_name[0] != '\0' || (i == 0 && j == 0)) {
+                memmove(rm_file, &f[j], sizeof(struct File));
+                f[j].f_name[0] = '\0';
+
+                if (j == 0) {
+                    *blockno = 0;
+                    dir->f_size -= BLKSIZE;
+                }
+
+                return 0;
+            }
+        }
+    }
 }
 
 /* Flush the contents and metadata of file f out to disk.

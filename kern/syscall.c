@@ -468,14 +468,47 @@ sys_region_refs(uintptr_t addr, size_t size, uintptr_t addr2, uintptr_t size2) {
     return maxref - region_maxref(current_space, addr2, size2);
 }
 
+
 /*
- *  Returns 0 on success, -1 on error
+ * Test whether this process has special user powers.
+ */
+int
+is_suser(struct Env* e) {
+    return e->env_ucred.cr_uid == 0;
+}
+
+int
+is_suser_cred(struct Ucred* cred) {
+    return cred->cr_uid == 0;
+}
+
+/*
+ *  Returns 0 on success, -E_PERM on error
  */
 static int
 sys_setuid(uid_t uid) {
-    if (!curenv)
-        return -1;
-    curenv->env_ucred.cr_ruid = uid;
+    struct Env* env = curenv;
+    struct Ucred* cred;
+
+    cred = &(env->env_ucred);
+    /* do nothing if uid matches user's uid */
+    if (cred->cr_uid == uid &&
+        cred->cr_ruid == uid &&
+        cred->cr_svuid == uid)
+        return 0;
+    /* Permit only superuser or user with matching effective/real/saved uid */
+    if (cred->cr_uid != uid &&
+        cred->cr_ruid != uid &&
+        cred->cr_svuid != uid &&
+        !is_suser_cred(cred))
+        return -E_PERM;
+    /* Superuser or user with matching effective uid*/
+    if (uid == cred->cr_uid || is_suser_cred(cred)) {
+        cred->cr_ruid = uid;
+        cred->cr_svuid = uid;
+    }
+    cred->cr_uid = uid;
+
     return 0;
 }
 
@@ -484,73 +517,115 @@ sys_setuid(uid_t uid) {
  */
 static int
 sys_setgid(gid_t gid) {
-    if (!curenv)
-        return -1;
-    curenv->env_ucred.cr_rgid = gid;
+    struct Env* env = curenv;
+    struct Ucred* cred;
+
+    cred = &(env->env_ucred);
+    /* do nothing if gid matches user's gid */
+    if (cred->cr_gid == gid &&
+        cred->cr_rgid == gid &&
+        cred->cr_svgid == gid)
+        return 0;
+
+    /* Permit only superuser or user with matching effective/real/saved gid */
+    if (cred->cr_gid != gid &&
+        cred->cr_rgid != gid &&
+        cred->cr_svgid != gid &&
+        !is_suser_cred(cred))
+        return -E_PERM;
+
+    /* Everything is ok, let's go */
+
+    /* Superuser or user with matching effective gid*/
+    if (gid == cred->cr_gid || is_suser_cred(cred)) {
+        cred->cr_rgid = gid;
+        cred->cr_svgid = gid;
+    }
+    cred->cr_gid = gid;
     return 0;
 }
 
 /*
- *  Returns real uid on success, -1 on error
+ *  Returns 0 on success, -E_PERM on error
  */
+static int
+sys_seteuid(uid_t euid) {
+    struct Env* env = curenv;
+    struct Ucred* cred;
+
+    cred = &(env->env_ucred);
+    /* do nothing if uid matches user's uid */
+    if (cred->cr_uid == euid)
+        return 0;
+
+    if (cred->cr_ruid != euid &&
+        cred->cr_svuid != euid &&
+        !is_suser_cred(cred))
+        return -E_PERM;
+
+    cred->cr_uid = euid;
+    return 0;
+}
+
+/*
+ *  Returns 0 on success, -E_PERM on error
+ */
+static int
+sys_setegid(gid_t egid) {
+    struct Env* env = curenv;
+    struct Ucred* cred;
+
+    cred = &(env->env_ucred);
+    /* do nothing if uid matches user's uid */
+    if (cred->cr_gid == egid)
+        return 0;
+
+    if (cred->cr_rgid != egid &&
+        cred->cr_svgid != egid &&
+        !is_suser_cred(cred))
+        return -E_PERM;
+
+    cred->cr_gid = egid;
+    return 0;
+}
+
 static uid_t
 sys_getuid() {
-    if (!curenv)
-        return -1;
     return curenv->env_ucred.cr_ruid;
 }
 
-/*
- *  Returns real gid on success, -1 on error
- */
 static gid_t
 sys_getgid() {
-    if (!curenv)
-        return -1;
     return curenv->env_ucred.cr_rgid;
 }
 
-/*
- *  Returns 0 on success, -1 on error
- */
-static int
-sys_seteuid(uid_t uid) {
-    if (!curenv)
-        return -1;
-    curenv->env_ucred.cr_uid = uid;
-    return 0;
-}
-
-/*
- *  Returns 0 on success, -1 on error
- */
-static int
-sys_setegid(gid_t gid) {
-    if (!curenv)
-        return -1;
-    curenv->env_ucred.cr_gid = gid;
-    return 0;
-}
-
-/*
- *  Returns effective uid on success, -1 on error
- */
 static uid_t
 sys_geteuid() {
-    if (!curenv)
-        return -1;
     return curenv->env_ucred.cr_uid;
 }
 
-/*
- *  Returns effective gid on success, -1 on error
- */
 static gid_t
 sys_getegid() {
-    if (!curenv)
-        return -1;
     return curenv->env_ucred.cr_gid;
 }
+
+/*
+ *  Return 0 on success
+ */
+int
+sys_getenvcurpath(char buf[MAXPATHLEN], envid_t envid) {
+    if (envid == 0) {
+        strncpy(buf, curenv->current_path, MAXPATHLEN);
+        return 0;
+    }
+    struct Env* env = &envs[ENVX(envid)];
+    if (env->env_status == ENV_FREE || env->env_id != envid) {
+        return -E_BAD_ENV;
+    }
+    strncpy(buf, env->current_path, MAXPATHLEN);
+    return 0;
+}
+
 
 /* Dispatches to the correct kernel function, passing the arguments. */
 uintptr_t
@@ -606,13 +681,15 @@ syscall(uintptr_t syscallno, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t
     case SYS_getgid:
         return sys_getgid();
     case SYS_seteuid:
-        return sys_setuid((uid_t)a1);
+        return sys_seteuid((uid_t)a1);
     case SYS_geteuid:
-        return sys_getuid();
+        return sys_geteuid();
     case SYS_setegid:
-        return sys_setgid((gid_t)a1);
+        return sys_setegid((gid_t)a1);
     case SYS_getegid:
-        return sys_getgid();
+        return sys_getegid();
+    case SYS_getenvcurpath:
+        return sys_getenvcurpath((char*)a1, (envid_t)a2);
     default:
         cprintf("Unexpected in syscall\n");
     }
