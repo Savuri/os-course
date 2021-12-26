@@ -106,6 +106,7 @@ enum {
     FSREQ_STAT,
     FSREQ_FLUSH,
     FSREQ_REMOVE,
+    FSREQ_ACCESSDIR,
     FSREQ_SYNC
 };
 
@@ -145,6 +146,10 @@ union Fsipc {
     struct Fsreq_remove {
         char req_path[MAXPATHLEN];
     } remove;
+    
+    struct Fsreq_accessdir {
+        char req_path[MAXPATHLEN];
+    } accessdir;
 
     /* Ensure Fsipc is one page */
     char _pad[PAGE_SIZE];

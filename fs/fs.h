@@ -37,6 +37,7 @@ ssize_t file_write(struct File *f, const void *buf, size_t count, off_t offset);
 int file_set_size(struct File *f, off_t newsize);
 void file_flush(struct File *f);
 int file_remove(const char *path, const struct Ucred *ucred);
+int accessdir(const char *path, const struct Ucred *ucred);
 void fs_sync(void);
 int groupmember(gid_t gid, const struct Ucred *cred);
 int access(uint32_t type, struct Fcred fcred, int acc_mode, const struct Ucred *cred);

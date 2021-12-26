@@ -103,7 +103,8 @@ int sys_setegid(gid_t gid);
 uid_t sys_geteuid();
 gid_t sys_getegid();
 
-int sys_getenvcurpath(char buf[MAXPATHLEN], envid_t proc_id);
+int sys_getenvcurpath(char buf[MAXPATHLEN], envid_t envid);
+int sys_setenvcurpath(const char buf[MAXPATHLEN]);
 
 int vsys_gettime(void);
 
@@ -149,6 +150,7 @@ void NormalizePath(char cur_dir[MAXPATHLEN], char path[MAXPATHLEN]);
 int open(const char *path, int mode);
 int ftruncate(int fd, off_t size);
 int remove(const char *path);
+int chdir(const char *path);
 int sync(void);
 
 /* spawn.c */

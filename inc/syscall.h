@@ -28,6 +28,7 @@ enum {
     SYS_setegid,
     SYS_getegid,
     SYS_getenvcurpath,
+    SYS_setenvcurpath,
     NSYSCALLS
 };
 
