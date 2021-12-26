@@ -62,7 +62,7 @@ findfreeuid() {
         saveuid();
     } while (r);
 
-    for (int i = 0; i < UID_MAX; i++)
+    for (int i = 1; i < UID_MAX; i++)
         if (!uids[i])
             return i;
     printf("No free uids\n");
