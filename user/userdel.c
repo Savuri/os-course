@@ -33,7 +33,6 @@ isdeluser(char* name) {
     if (r) {
         char home[PATHLEN_MAX];
         gethome(home);
-        printf("home = %s\n", home);
         const char* argv[3] = {"rm", home, NULL};
         int r = spawn("rm", argv);
         if (r >= 0)

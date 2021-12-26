@@ -442,13 +442,27 @@ file_create(const char *path, struct File **pf, int type, const struct Ucred *uc
 /* Open "path".  On success set *pf to point at the file and return 0.
  * On error return < 0. */
 int
-file_open(const char *path, struct File **pf, const struct Ucred *ucred) {
+file_open(const char *path, struct File **pf, const struct Ucred *ucred, int mode) {
     int res;
     if ((res = walk_path(path, 0, pf, 0, ucred)) < 0) {
         return res;
     }
 
-    if ((res = access((*pf)->f_type, (*pf)->f_cred, READ, ucred)) < 0) {
+    int acc_mode = 0;
+
+    if (mode == O_RDONLY) {
+        acc_mode = READ;
+    } else if (mode == O_WRONLY) {
+        acc_mode = WRITE;
+    } else if (mode == O_RDWR) {
+        acc_mode = READ | WRITE;
+    }
+
+    if (acc_mode == 0) {
+        panic("Open without any read, write flag\n");
+    }
+
+    if ((res = access((*pf)->f_type, (*pf)->f_cred, acc_mode, ucred)) < 0) {
         return res;
     }
 
