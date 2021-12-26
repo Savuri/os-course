@@ -349,9 +349,13 @@ walk_path(const char *path, struct File **pdir, struct File **pf, char *lastelem
     char name[MAXNAMELEN];
     struct File *dir, *f;
     int r;
-
-    // if (*path != '/')
-    //     return -E_BAD_PATH;
+    
+    if (!strcmp(path, "/")) {
+        *pdir = &super->s_root;
+        *pf = &super->s_root;
+        *lastelem = '/';
+        return 0;
+    }
     path = skip_slash(path);
     f = &super->s_root;
     dir = 0;

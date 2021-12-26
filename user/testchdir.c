@@ -25,6 +25,13 @@ umain(int argc, char **argv) {
     }
 
     test_chdir("/etc", "/etc");
-    sys_setenvcurpath("/");
+    test_chdir("/","/");
+    test_chdir("/etc/", "/etc");
+    test_chdir("/","/");
+    test_chdir("etc/", "/etc");
+    test_chdir("/","/");
     test_chdir("etc", "/etc");
+
+    test_chdir("/","/");
+    test_chdir("/1/2/3/4","/");
 }
