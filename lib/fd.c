@@ -183,7 +183,7 @@ read(int fdnum, void *buf, size_t n) {
     if ((res = dev_lookup(fd->fd_dev_id, &dev)) < 0) return res;
 
     if ((fd->fd_omode & O_ACCMODE) == O_WRONLY) {
-        cprintf("[%08x] read %d -- bad mode\n", thisenv->env_id, fdnum);
+        // cprintf("[%08x] read %d -- bad mode\n", thisenv->env_id, fdnum);
         return -E_INVAL;
     }
 
@@ -213,7 +213,7 @@ write(int fdnum, const void *buf, size_t n) {
     if ((res = dev_lookup(fd->fd_dev_id, &dev)) < 0) return res;
 
     if ((fd->fd_omode & O_ACCMODE) == O_RDONLY) {
-        cprintf("[%08x] write %d -- bad mode\n", thisenv->env_id, fdnum);
+        // cprintf("[%08x] write %d -- bad mode\n", thisenv->env_id, fdnum);
         return -E_INVAL;
     }
 
@@ -249,8 +249,8 @@ ftruncate(int fdnum, off_t newsize) {
     if ((res = dev_lookup(fd->fd_dev_id, &dev)) < 0) return res;
 
     if ((fd->fd_omode & O_ACCMODE) == O_RDONLY) {
-        cprintf("[%08x] ftruncate %d -- bad mode\n",
-                thisenv->env_id, fdnum);
+        // cprintf("[%08x] ftruncate %d -- bad mode\n",
+        //         thisenv->env_id, fdnum);
         return -E_INVAL;
     }
 

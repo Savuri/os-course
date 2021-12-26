@@ -215,8 +215,12 @@ writefile(struct Dir *dir, const char *name) {
         f->f_cred.fc_permission = S_IRWXU | S_IRWXG | S_IRWXO;
     } else if (!strcmp(name, "fs/load/read-only")) {
         f->f_cred.fc_permission = S_IRUSR | S_IRGRP | S_IROTH;
+        f->f_cred.fc_uid = 1;
+        f->f_cred.fc_gid = 1;
     } else if (!strcmp(name, "fs/load/write-only")) {
         f->f_cred.fc_permission = S_IWUSR | S_IWGRP | S_IWOTH;
+        f->f_cred.fc_uid = 1;
+        f->f_cred.fc_gid = 1;
     } else {
         f->f_cred.fc_permission = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP /*| S_IROTH     */;
     }

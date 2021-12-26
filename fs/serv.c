@@ -119,7 +119,6 @@ serve_open(envid_t envid, struct Fsreq_open *req,
 
         return 0;
     }
-    cprintf("HERE\n");
     /* Open the file */
     if (req->req_omode & O_CREAT) {
         if ((res = file_create(path, &f, FTYPE_REG, ucred)) < 0) {
