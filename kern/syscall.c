@@ -631,12 +631,9 @@ sys_getenvcurpath(char buf[MAXPATHLEN], envid_t envid) {
  *  Return 0 on success
  */
 int
-sys_setenvcurpath(const char* buf, envid_t envid) {
-    if (envid == 0) {
-        strncpy(curenv->current_path, buf, MAXPATHLEN);
-        return 0;
-    }
-    return -1;
+sys_setenvcurpath(const char* buf) {
+    strncpy(curenv->current_path, buf, MAXPATHLEN);
+    return 0;
 }
 
 
@@ -704,7 +701,7 @@ syscall(uintptr_t syscallno, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t
     case SYS_getenvcurpath:
         return sys_getenvcurpath((char*)a1, (envid_t)a2);
     case SYS_setenvcurpath:
-        return sys_setenvcurpath((const char*)a1, (envid_t)a2);
+        return sys_setenvcurpath((const char*)a1);
     default:
         cprintf("Unexpected in syscall\n");
     }

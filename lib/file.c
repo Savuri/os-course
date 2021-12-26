@@ -203,7 +203,7 @@ cd(const char *path) {
     strncpy(fsipcbuf.accessdir.req_path, req_path, MAXPATHLEN);
     int res = fsipc(FSREQ_ACCESSDIR, NULL);
     if (!res) {
-        sys_setenvcurpath(req_path, 0);
+        sys_setenvcurpath(req_path);
         return;
     }
 
