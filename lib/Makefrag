@@ -8,7 +8,8 @@ LIB_SRCFILES :=		lib/console.c \
 			lib/printfmt.c \
 			lib/string.c \
 			lib/readline.c \
-			lib/syscall.c
+			lib/syscall.c \
+			user/user.c
 
 ifeq ($(CONFIG_KSPACE),y)
 LIB_SRCFILES +=		lib/random.c \
