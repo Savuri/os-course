@@ -1,8 +1,6 @@
 #include <inc/lib.h>
+#include <user/user.h>
 
-#define NAMELEN    32
-#define PASSLEN    64
-#define NBUFSIZ    1024
 #define ETC_SHADOW "etc/shadow"
 #define ETC_PASSWD "etc/passwd"
 
@@ -19,24 +17,7 @@ typedef struct passwd_t {
 char nbuf[NBUFSIZ + 1];
 
 int
-getline(int f) {
-    int i = 0, res;
-    for (;;) {
-        res = read(f, nbuf + i, sizeof(char));
-        if (res <= 0)
-            return -1;
-        if (nbuf[i] == '\n')
-            break;
-        if (i >= NBUFSIZ)
-            return -1;
-        i++;
-    }
-    nbuf[i] = '\0';
-    return 0;
-}
-
-int
-parseline(passwd_t *passwd) {
+parseline(passwd_t *passwd, char *buf) {
     char *number = NULL;
 
     enum State {
@@ -50,10 +31,10 @@ parseline(passwd_t *passwd) {
         S_ERROR
     } state = S_NAME;
 
-    passwd->name = nbuf;
-    for (int i = 0; nbuf[i] != '\0'; i++) {
-        if (nbuf[i] == ':') { /* word ended */
-            nbuf[i] = '\0';
+    passwd->name = buf;
+    for (int i = 0; buf[i] != '\0'; i++) {
+        if (buf[i] == ':') { /* word ended */
+            buf[i] = '\0';
             if (state == S_UID)
                 passwd->uid = strtol(number, NULL, 10);
             if (state == S_GID)
@@ -61,22 +42,22 @@ parseline(passwd_t *passwd) {
             state++;
             switch (state) {
             case S_PASSWORD:
-                passwd->password = nbuf + i + 1;
+                passwd->password = buf + i + 1;
                 break;
             case S_UID:
-                number = nbuf + i + 1;
+                number = buf + i + 1;
                 break;
             case S_GID:
-                number = nbuf + i + 1;
+                number = buf + i + 1;
                 break;
             case S_COMMENT:
-                passwd->comment = nbuf + i + 1;
+                passwd->comment = buf + i + 1;
                 break;
             case S_HOMEPATH:
-                passwd->homepath = nbuf + i + 1;
+                passwd->homepath = buf + i + 1;
                 break;
             case S_SHELL:
-                passwd->shell = nbuf + i + 1;
+                passwd->shell = buf + i + 1;
                 break;
             default:
                 return -1;
@@ -98,10 +79,10 @@ authcheck(char login[], char password[], passwd_t *passwd) {
         return f;
     }
     for (;;) {
-        res = getline(f);
-        if (res < 0)
+        res = getline(f, nbuf, NBUFSIZ);
+        if (res <= 0)
             break;
-        res = parseline(passwd);
+        res = parseline(passwd, nbuf);
         if (res < 0)
             break;
         if (!strcmp(login, passwd->name)) {
@@ -127,7 +108,7 @@ getloginname(char *nbuf) {
                 break; /* OK */
             if (ch <= 0)
                 exit(); /* EOF -> restart login */
-            if (p < nbuf + NAMELEN) {
+            if (p < nbuf + COMMENTLEN_MAX) {
                 *p = ch;
                 p++;
             }
@@ -142,6 +123,7 @@ getloginname(char *nbuf) {
             }
         }
     }
+    printf("\n");
 }
 
 void
@@ -159,13 +141,14 @@ getpassword(char *nbuf) {
             break; /* OK */
         if (ch <= 0)
             exit(); /* EOF -> restart login */
-        if (p < nbuf + PASSLEN) {
+        if (p < nbuf + PASSLEN_MAX) {
             *p = ch;
             p++;
         }
     }
     *p = '\0'; /* Success */
     /* Restore terminal state */
+    printf("\n");
 }
 
 
@@ -181,8 +164,8 @@ umain(int argc, char *argv[]) {
     }
 
     for (;;) { /* TODO count failed attempts */
-        char username[NAMELEN + 1] = {0};
-        char password[PASSLEN + 1] = {0};
+        char username[COMMENTLEN_MAX + 1] = {0};
+        char password[PASSLEN_MAX + 1] = {0};
 
         getloginname(username);
         getpassword(password);

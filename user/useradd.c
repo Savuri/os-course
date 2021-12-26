@@ -4,32 +4,12 @@
 
 int flag[256];
 int uids[UID_MAX];
-char buf[256];
+char buf[NBUFSIZ];
 
 user_t user;
 
 /*
- *  read line from fd to buf[]
- */
-int
-getline(int fd) {
-    int i = 0;
-    int r = read(fd, &buf[i], 1);
-    if (!r)
-        return 0;
-    while (buf[i] != '\n') {
-        i++;
-        r = read(fd, &buf[i], 1);
-        if (!r)
-            return 0;
-    }
-    i++;
-    buf[i] = 0;
-    return 1;
-}
-
-/*
- *  save uid to uids[] 
+ *  save uid to uids[]
  */
 void
 saveuid() {
@@ -58,15 +38,15 @@ findfreeuid() {
     if (fd < 0)
         return 1;
     do {
-        r = getline(fd);
+        r = getline(fd, buf, NBUFSIZ);
         saveuid();
-    } while (r);
+    } while (r > 0);
 
     for (int i = 1; i < UID_MAX; i++)
         if (!uids[i])
             return i;
     printf("No free uids\n");
-    return -1; //out of uids
+    return -1; // out of uids
 }
 
 /*
@@ -87,7 +67,7 @@ userinit() {
 }
 
 /*
- * write or update userinfo to /etc/passwd 
+ * write or update userinfo to /etc/passwd
  */
 void
 useradd() {
@@ -95,13 +75,13 @@ useradd() {
         if (!flag[i]) continue;
         switch (i) {
         case 'D':
-            //usermod();
+            // usermod();
             break;
         default:;
         }
     }
     int fd = open("/etc/passwd", O_WRONLY | O_CREAT | O_APPEND);
-    fprintf(fd, "%s:%s:%d:%d:%s:%s\n", user.u_comment, user.u_password, user.u_uid,
+    fprintf(fd, "%s:%s:%d:%d::%s:%s\n", user.u_comment, user.u_password, user.u_uid,
             user.u_primgrp, user.u_home, user.u_shell);
     int r;
     const char* args[3] = {"mkdir", user.u_home, NULL};
@@ -206,7 +186,6 @@ umain(int argc, char** argv) {
         case 'p':
         case 'D':
         case 'g':
-        case 'm':
         case 'b':
         case 's':
         case 'u':
