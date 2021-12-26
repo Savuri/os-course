@@ -36,12 +36,14 @@ USERAPPS :=		$(OBJDIR)/user/init \
 			$(OBJDIR)/user/hello \
 			$(OBJDIR)/user/date \
 			$(OBJDIR)/user/vdate \
+			$(OBJDIR)/user/useradd \
+			$(OBJDIR)/user/userdel \
 			$(OBJDIR)/user/rm \
 			$(OBJDIR)/user/mkdir \
-		    $(OBJDIR)/user/seteuid \
-            $(OBJDIR)/user/setuid \
-            $(OBJDIR)/user/setgid \
-            $(OBJDIR)/user/setegid \
+		  $(OBJDIR)/user/seteuid \
+      $(OBJDIR)/user/setuid \
+      $(OBJDIR)/user/setgid \
+      $(OBJDIR)/user/setegid \
 			$(OBJDIR)/user/testfsrwonly \
 
 
