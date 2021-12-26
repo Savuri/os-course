@@ -307,9 +307,45 @@ serve_flush(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
  * Huge hammer. Without access. User have not declaration
  */
 int
-serve_sync(envid_t envid, union Fsipc *req, const struct Ucred *ucred) {
+serve_sync(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
     fs_sync();
     return 0;
+}
+
+/*
+ * this function is SET permission on file.
+ * ret < 0 - error
+ * ret = 0 - ok
+ */
+int
+serve_chmod(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
+    struct Fsreq_chmod *req = &ipc->chmod;
+
+    return file_chmod(req->req_path, req->req_perm, ucred);
+}
+
+/*
+ * this function is SET owner(req_uid) of file.
+ * ret < 0 - error
+ * ret = 0 - ok
+ */
+int
+serve_chown(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
+    struct Fsreq_chown *req = &ipc->chown;
+
+    return file_chown(req->req_path, req->req_uid, ucred);
+}
+
+/*
+ * this function is SET group(req_gid) of file.
+ * ret < 0 - error
+ * ret = 0 - ok
+ */
+int
+serve_chgrp(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
+    struct Fsreq_chgrp *req = &ipc->chgrp;
+
+    return file_chgrp(req->req_path, req->req_gid, ucred);
 }
 
 typedef int (*fshandler)(envid_t envid, union Fsipc *req, const struct Ucred *ucred);
@@ -324,6 +360,9 @@ fshandler handlers[] = {
         [FSREQ_SET_SIZE] = serve_set_size,
         [FSREQ_SYNC] = serve_sync,
         [FSREQ_REMOVE] = serve_remove,
+        [FSREQ_CHMOD] = serve_chmod,
+        [FSREQ_CHOWN] = serve_chown,
+        [FSREQ_CHGRP] = serve_chgrp};
         [FSREQ_ACCESSDIR] = serve_accessdir};
 #define NHANDLERS (sizeof(handlers) / sizeof(handlers[0]))
 

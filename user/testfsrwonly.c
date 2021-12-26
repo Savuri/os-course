@@ -43,7 +43,7 @@ test_read_only(const char *who) {
 }
 
 static void
-test_write_only(const char* who) {
+test_write_only(const char *who) {
     int64_t r;
     char buf[512];
 

@@ -673,3 +673,73 @@ fs_sync(void) {
         flush_block(diskaddr(i));
     }
 }
+
+/*
+ * return 0 on success
+ * otherwise < 0
+ */
+int
+file_chmod(const char *path, permission_t perm, const struct Ucred *ucred) {
+    struct File *dir, *file;
+    char last;
+
+    int res;
+    if ((res = walk_path(path, &dir, &file, &last, ucred)) < 0) {
+        return res;
+    }
+
+    if (ucred->cr_uid == 0 || ucred->cr_uid == file->f_cred.fc_uid) {
+        file->f_cred.fc_permission = perm;
+
+        return 0;
+    }
+
+    return -E_ACCES;
+}
+
+
+/*
+ * return 0 on success
+ * otherwise < 0
+ */
+int
+file_chown(const char *path, uid_t uid, const struct Ucred *ucred) {
+    struct File *dir, *file;
+    char last;
+
+    int res;
+    if ((res = walk_path(path, &dir, &file, &last, ucred)) < 0) {
+        return res;
+    }
+
+    if (ucred->cr_uid == 0) {
+        file->f_cred.fc_uid = uid;
+
+        return 0;
+    }
+
+    return -E_ACCES;
+}
+
+/*
+ * return 0 on success
+ * otherwise < 0
+ */
+int
+file_chgrp(const char *path, gid_t gid, const struct Ucred *ucred) {
+    struct File *dir, *file;
+    char last;
+
+    int res;
+    if ((res = walk_path(path, &dir, &file, &last, ucred)) < 0) {
+        return res;
+    }
+
+    if (ucred->cr_uid == 0 || (file->f_cred.fc_uid == ucred->cr_uid && groupmember(gid, ucred))) {
+        file->f_cred.fc_gid = gid;
+
+        return 0;
+    }
+
+    return -E_ACCES;
+}
