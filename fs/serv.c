@@ -318,7 +318,8 @@ serve_chmod(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
  * ret < 0 - error
  * ret = 0 - ok
  */
-int serve_chown(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred){
+int
+serve_chown(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
     struct Fsreq_chown *req = &ipc->chown;
 
     return file_chown(req->req_path, req->req_uid, ucred);
@@ -329,7 +330,8 @@ int serve_chown(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred){
  * ret < 0 - error
  * ret = 0 - ok
  */
-int serve_chgrp(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
+int
+serve_chgrp(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
     struct Fsreq_chgrp *req = &ipc->chgrp;
 
     return file_chgrp(req->req_path, req->req_gid, ucred);

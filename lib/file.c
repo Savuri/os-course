@@ -79,7 +79,7 @@ open(const char *path, int mode) {
     strncpy(tmp_path, path, MAXPATHLEN);
     sys_getenvcurpath(fsipcbuf.open.req_path, 0);
     NormalizePath(fsipcbuf.open.req_path, tmp_path);
- 
+
     fsipcbuf.open.req_omode = mode;
 
     if ((res = fsipc(FSREQ_OPEN, fd)) < 0) {
@@ -105,7 +105,6 @@ chown(const char *path, uid_t uid) {
 
     // Вместо if(1) проверка что такой юзер существует добавить мб код ошибки (ну или мб просто E_INVAL)
     if (1) {
-
     }
 
     char tmp_path[MAXPATHLEN];
@@ -132,7 +131,6 @@ chgrp(const char *path, gid_t gid) {
 
     // Вместо if(1) проверка, что такая группа существует + добавить мб код ошибки (ну или мб просто E_INVAL)
     if (1) {
-
     }
 
     char tmp_path[MAXPATHLEN];

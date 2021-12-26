@@ -659,7 +659,8 @@ fs_sync(void) {
  * return 0 on success
  * otherwise < 0
  */
-int file_chmod(const char *path, permission_t perm, const struct Ucred *ucred) {
+int
+file_chmod(const char *path, permission_t perm, const struct Ucred *ucred) {
     struct File *dir, *file;
     char last;
 
@@ -682,7 +683,8 @@ int file_chmod(const char *path, permission_t perm, const struct Ucred *ucred) {
  * return 0 on success
  * otherwise < 0
  */
-int file_chown(const char *path, uid_t uid, const struct Ucred *ucred) {
+int
+file_chown(const char *path, uid_t uid, const struct Ucred *ucred) {
     struct File *dir, *file;
     char last;
 
@@ -703,7 +705,8 @@ int file_chown(const char *path, uid_t uid, const struct Ucred *ucred) {
  * return 0 on success
  * otherwise < 0
  */
-int file_chgrp(const char *path, gid_t gid, const struct Ucred *ucred) {
+int
+file_chgrp(const char *path, gid_t gid, const struct Ucred *ucred) {
     struct File *dir, *file;
     char last;
 

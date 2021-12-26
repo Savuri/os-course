@@ -111,7 +111,7 @@ strrchr(const char *str, int c) {
     char *res = NULL;
     for (; *str; str++) {
         if (*str == c) {
-            res = (char*)str;
+            res = (char *)str;
         }
     }
     return res;
