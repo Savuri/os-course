@@ -7,7 +7,9 @@ FSOFILES := 		$(OBJDIR)/fs/ide.o \
 			$(OBJDIR)/fs/serv.o \
 			$(OBJDIR)/fs/test.o \
 
-FSIMGDIRS := fs/load/etc
+FSIMGDIRS := fs/load/etc \
+             fs/load/home \
+             fs/load/root
 
 FSIMGTXTFILES :=	fs/load/newmotd \
 			fs/load/motd \
