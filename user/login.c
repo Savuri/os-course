@@ -1,37 +1,116 @@
 #include <inc/lib.h>
 
-
-#define NBUFSIZ 64
+#define NAMELEN    32
+#define PASSLEN    64
+#define NBUFSIZ    1024
 #define ETC_SHADOW "etc/shadow"
 #define ETC_PASSWD "etc/passwd"
 
-/*
-void
-readfile()
-{
-    int f, res, ch, i;
-    char pw_name[NBUFSIZ];
+typedef struct passwd_t {
+    char *name;
+    char *password;
+    uid_t uid;
+    gid_t gid;
+    char *comment;
+    char *homepath;
+    char *shell;
+} passwd_t;
 
-    f = open(ETC_PASSWD, O_RDONLY);
-    for (;;) {
-        i = 0;
-        for (;;) {
-            ch = fgetc(f);
-            if (ch == EOF)
-                break;
-            pw_name[i] = ch;
-            i++
-        }
-        pw_name[i] = '\0';
-    }
-
-}
-*/
+char nbuf[NBUFSIZ + 1];
 
 int
-authcheck(char login[], char password[])
-{
-    return 1000;
+getline(int f) {
+    int i = 0, res;
+    for (;;) {
+        res = read(f, nbuf + i, sizeof(char));
+        if (res <= 0)
+            return -1;
+        if (nbuf[i] == '\n')
+            break;
+        if (i >= NBUFSIZ)
+            return -1;
+        i++;
+    }
+    nbuf[i] = '\0';
+    return 0;
+}
+
+int
+parseline(passwd_t *passwd) {
+    char *number = NULL;
+
+    enum State {
+        S_NAME,
+        S_PASSWORD,
+        S_UID,
+        S_GID,
+        S_COMMENT,
+        S_HOMEPATH,
+        S_SHELL,
+        S_ERROR
+    } state = S_NAME;
+
+    passwd->name = nbuf;
+    for (int i = 0; nbuf[i] != '\0'; i++) {
+        if (nbuf[i] == ':') { /* word ended */
+            nbuf[i] = '\0';
+            if (state == S_UID)
+                passwd->uid = strtol(number, NULL, 10);
+            if (state == S_GID)
+                passwd->gid = strtol(number, NULL, 10);
+            state++;
+            switch (state) {
+            case S_PASSWORD:
+                passwd->password = nbuf + i + 1;
+                break;
+            case S_UID:
+                number = nbuf + i + 1;
+                break;
+            case S_GID:
+                number = nbuf + i + 1;
+                break;
+            case S_COMMENT:
+                passwd->comment = nbuf + i + 1;
+                break;
+            case S_HOMEPATH:
+                passwd->homepath = nbuf + i + 1;
+                break;
+            case S_SHELL:
+                passwd->shell = nbuf + i + 1;
+                break;
+            default:
+                return -1;
+            }
+        }
+    }
+    if (state != S_SHELL)
+        return -1;
+    return 0;
+}
+
+int
+authcheck(char login[], char password[], passwd_t *passwd) {
+    int f, res;
+
+    f = open(ETC_PASSWD, O_RDONLY);
+    if (f < 0) {
+        printf("Can't open " ETC_PASSWD ": %i\n", f);
+        return f;
+    }
+    for (;;) {
+        res = getline(f);
+        if (res < 0)
+            break;
+        res = parseline(passwd);
+        if (res < 0)
+            break;
+        if (!strcmp(login, passwd->name)) {
+            res = strcmp(password, passwd->password) ? -1 : 0;
+            break;
+        }
+    }
+    close(f);
+    return res;
 }
 
 void
@@ -48,7 +127,7 @@ getloginname(char *nbuf) {
                 break; /* OK */
             if (ch <= 0)
                 exit(); /* EOF -> restart login */
-            if (p < nbuf + (NBUFSIZ - 1)) {
+            if (p < nbuf + NAMELEN) {
                 *p = ch;
                 p++;
             }
@@ -80,7 +159,7 @@ getpassword(char *nbuf) {
             break; /* OK */
         if (ch <= 0)
             exit(); /* EOF -> restart login */
-        if (p < nbuf + (NBUFSIZ - 1)) {
+        if (p < nbuf + PASSLEN) {
             *p = ch;
             p++;
         }
@@ -92,34 +171,36 @@ getpassword(char *nbuf) {
 
 void
 umain(int argc, char *argv[]) {
-    uid_t uid;
-    int r;
+    passwd_t passwd;
+    int res;
 
-
-    if (sys_seteuid(0) < 0) {
-        //sleep(2);
-        return ;
+    res = sys_seteuid(0);
+    if (res < 0) {
+        printf("seteuid: %i\n", res);
+        return;
     }
 
     for (;;) { /* TODO count failed attempts */
-        char username[NBUFSIZ] = {0};
-        char password[NBUFSIZ] = {0};
+        char username[NAMELEN + 1] = {0};
+        char password[PASSLEN + 1] = {0};
 
         getloginname(username);
         getpassword(password);
-        uid = authcheck(username, password);
-        if (uid >= 0)
+        res = authcheck(username, password, &passwd);
+        if (res >= 0)
             break;
-        //sleep(5); /* TODO carefully calculate sleep time*/
+        // sleep(5); /* TODO carefully calculate sleep time*/
         printf("\nLogin failed.\n");
     }
+    printf("\n");
 
-    sys_setuid(uid);
-    sys_setgid(uid);
-    r = spawnl("/sh", "sh", (char *)0);
-    if (r < 0) {
-        printf("login: spawn shell: %i\n", r);
-        return ;
+    sys_setuid(passwd.uid);
+    sys_setgid(passwd.gid);
+    res = spawnl(passwd.shell, passwd.shell, (char *)0);
+    if (res < 0) {
+        printf("login: spawn shell: %i\n", res);
+        return;
     }
-    wait(r);
+    wait(res);
+    return;
 }
