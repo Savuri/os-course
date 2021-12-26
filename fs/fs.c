@@ -261,7 +261,8 @@ skip_slash(const char *p) {
 
 /*
  * Check if gid is a member of the group set.
- * TODO: скорее всего это стоит вынести из файла повыше
+ * 0 - file group is not in user groups
+ * 1 - file group is in user groups
  */
 int
 groupmember(gid_t gid, const struct Ucred *cred) {
