@@ -31,4 +31,7 @@ int vfprintf(int fd, const char *fmt, va_list);
 /* lib/readline.c */
 char *readline(const char *prompt);
 
+/* lib/console.c */
+int getline(int f, char *buf, int n);
+
 #endif /* !JOS_INC_STDIO_H */

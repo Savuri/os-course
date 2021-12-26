@@ -1,15 +1,11 @@
 #ifndef USER_H
 #define USER_H
 
-typedef struct range_t {
-    uid_t r_from; /* low uid */
-    uid_t r_to;   /* high uid */
-} range_t;
-
 #define COMMENTLEN_MAX 32
 #define PATHLEN_MAX    64
 #define PASSLEN_MAX    64
 #define UID_MAX        1024
+#define NBUFSIZ        1024
 
 typedef struct user_t {
     int u_flags;                       /* see below */
@@ -28,7 +24,6 @@ typedef struct user_t {
     char *u_class;                     /* login class */
     unsigned int u_rsize;              /* size of range array */
     unsigned int u_rc;                 /* # of ranges */
-    range_t *u_rv;                     /* the ranges */
     unsigned int u_defrc;              /* # of ranges in defaults */
     int u_preserve;                    /* preserve uids on deletion */
 } user_t;

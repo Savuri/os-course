@@ -79,7 +79,7 @@ open(const char *path, int mode) {
     strncpy(tmp_path, path, MAXPATHLEN);
     sys_getenvcurpath(fsipcbuf.open.req_path, 0);
     NormalizePath(fsipcbuf.open.req_path, tmp_path);
- 
+
     fsipcbuf.open.req_omode = mode;
 
     if ((res = fsipc(FSREQ_OPEN, fd)) < 0) {

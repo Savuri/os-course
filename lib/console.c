@@ -24,6 +24,31 @@ getchar(void) {
                                  -E_EOF;
 }
 
+/*
+ * On success -> 1, EOF -> 0, error -> -1
+ */
+int
+getline(int f, char *buf, int n) {
+    int i = 0, res;
+
+    for (;;) {
+        res = read(f, buf + i, 1);
+        if (res == 0)
+            return 0;
+        if (res < 0)
+            return -1;
+
+        if (buf[i] == '\n')
+            break;
+
+        if (i >= n)
+            return -1;
+        i++;
+    }
+    buf[i] = '\0';
+    return 1;
+}
+
 /* "Real" console file descriptor implementation.
  * The putchar/getchar functions above will still come here by default,
  * but now can be redirected to files, pipes, etc., via the fd layer. */
