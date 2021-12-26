@@ -66,7 +66,7 @@ findfreeuid() {
         if (!uids[i])
             return i;
     printf("No free uids\n");
-    exit(); //out of uids
+    return -1; //out of uids
 }
 
 /*
@@ -75,6 +75,8 @@ findfreeuid() {
 void
 userinit() {
     user.u_uid = findfreeuid();
+    if(user.u_uid == -1)
+        exit();
     strncpy(user.u_home, "/", 1);
     user.u_home[1] = 0;
     user.u_primgrp = user.u_uid;
