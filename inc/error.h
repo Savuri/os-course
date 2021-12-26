@@ -30,7 +30,9 @@ enum {
     E_NOT_SUPP = 19,    /* Operation not supported */
 
     /* ITASK error codes */
-    E_PERM = 20, /* Operation not permitted */
+    E_PERM = 20,      /* Operation not permitted */
+    E_NOT_EMPTY = 21, /* FS: Dir is not empty */
+    E_ACCES = 22,
     MAXERROR
 };
 
