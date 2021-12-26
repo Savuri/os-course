@@ -47,6 +47,7 @@ USERAPPS :=		$(OBJDIR)/user/init \
 			$(OBJDIR)/user/setgid \
 			$(OBJDIR)/user/setegid \
 			$(OBJDIR)/user/testfsrwonly \
+			$(OBJDIR)/user/testchdir \
 
 
 FSIMGFILES := $(FSIMGTXTFILES) $(USERAPPS) $(FSIMGDIRS)

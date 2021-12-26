@@ -110,6 +110,8 @@ enum {
     FSREQ_CHMOD,
     FSREQ_CHOWN,
     FSREQ_CHGRP
+    FSREQ_ACCESSDIR,
+    FSREQ_SYNC
 };
 
 union Fsipc {
@@ -160,6 +162,9 @@ union Fsipc {
         char req_path[MAXPATHLEN];
         gid_t req_gid;
     } chgrp;
+    struct Fsreq_accessdir {
+        char req_path[MAXPATHLEN];
+    } accessdir;
     /* Ensure Fsipc is one page */
     char _pad[PAGE_SIZE];
 };

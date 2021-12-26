@@ -206,6 +206,17 @@ serve_remove(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
     return file_remove(req->req_path, ucred);
 }
 
+int
+serve_accessdir(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
+    struct Fsreq_accessdir *req = &ipc->accessdir;
+
+    if (debug) {
+        cprintf("accessdir %08x %s\n", envid, req->req_path);
+    }
+
+    return accessdir(req->req_path, ucred);
+}
+
 /* Read at most ipc->read.req_n bytes from the current seek position
  * in ipc->read.req_fileid.  Return the bytes read from the file to
  * the caller in ipc->readRet, then update the seek position.  Returns
@@ -352,6 +363,7 @@ fshandler handlers[] = {
         [FSREQ_CHMOD] = serve_chmod,
         [FSREQ_CHOWN] = serve_chown,
         [FSREQ_CHGRP] = serve_chgrp};
+        [FSREQ_ACCESSDIR] = serve_accessdir};
 #define NHANDLERS (sizeof(handlers) / sizeof(handlers[0]))
 
 void

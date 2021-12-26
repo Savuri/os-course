@@ -263,6 +263,27 @@ devfile_trunc(struct Fd *fd, off_t newsize) {
     return fsipc(FSREQ_SET_SIZE, NULL);
 }
 
+/*change current directory*/
+int
+chdir(const char *path) {
+    if (strlen(path) >= MAXPATHLEN) {
+        return -E_BAD_PATH;
+    }
+
+    char req_path[MAXPATHLEN];
+    sys_getenvcurpath(req_path, 0);
+    char tmp_path[MAXPATHLEN];
+    strncpy(tmp_path, path, MAXPATHLEN);
+    NormalizePath(req_path, tmp_path);
+
+    strncpy(fsipcbuf.accessdir.req_path, req_path, MAXPATHLEN);
+    int res = fsipc(FSREQ_ACCESSDIR, NULL);
+    if (res) {
+        return res;
+    }
+    return sys_setenvcurpath(req_path);
+}
+
 /* Synchronize disk with buffer cache */
 int
 sync(void) {

@@ -628,6 +628,25 @@ file_remove(const char *path, const struct Ucred *ucred) {
     }
 }
 
+/*
+ * check if the current env have permision to each dir in path
+ * return 0 on success
+ * return < 0 on error
+ */
+int
+accessdir(const char *path, const struct Ucred *ucred) {
+    struct File *rm_file, *dir;
+    char last;
+
+    int ret = walk_path(path, &dir, &rm_file, &last, ucred);
+    if (ret < 0) {
+        return ret;
+    }
+
+    ret = access(dir->f_type, dir->f_cred, EXEC, ucred);
+    return ret;
+}
+
 /* Flush the contents and metadata of file f out to disk.
  * Loop over all the blocks in file.
  * Translate the file block number into a disk block number

@@ -40,6 +40,7 @@ int file_remove(const char *path, const struct Ucred *ucred);
 int file_chmod(const char *path, permission_t perm, const struct Ucred *ucred);
 int file_chown(const char *path, uid_t uid, const struct Ucred *ucred);
 int file_chgrp(const char *path, gid_t gid, const struct Ucred *ucred);
+int accessdir(const char *path, const struct Ucred *ucred);
 void fs_sync(void);
 int groupmember(gid_t gid, const struct Ucred *cred);
 int access(uint32_t type, struct Fcred fcred, int acc_mode, const struct Ucred *cred);
