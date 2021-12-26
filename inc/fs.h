@@ -36,10 +36,10 @@ typedef uint32_t blockno_t;
 #define S_ISGID 02000                                              /* Set group ID on execution.  */
 #define S_ISVTX 01000 /* Save swapped text after use (sticky).  */ // TODO: Did we need it?
 
-#define S_IRUSR 0400                          /* Read by owner.  */
-#define S_IWUSR 0200                          /* Write by owner.  */
-#define S_IXUSR 0100                          /* Execute by owner.  */
-#define S_IRWXU (S_IRUSR | S_IWUSR | S_IXUSR) /* Read, write, and execute by owner.  */
+#define S_IRUSR 0400                           /* Read by owner.  */
+#define S_IWUSR 0200                           /* Write by owner.  */
+#define S_IXUSR 0100                           /* Execute by owner.  */
+#define S_IRWXU (S_IREAD | S_IWRITE | S_IEXEC) /* Read, write, and execute by owner.  */
 
 #define S_IRGRP (S_IRUSR >> 3) /* Read by group.  */
 #define S_IWGRP (S_IWUSR >> 3) /* Write by group.  */

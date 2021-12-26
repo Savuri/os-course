@@ -681,11 +681,11 @@ syscall(uintptr_t syscallno, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t
     case SYS_getgid:
         return sys_getgid();
     case SYS_seteuid:
-        return sys_seteuid((uid_t)a1);
+        return sys_setuid((uid_t)a1);
     case SYS_geteuid:
-        return sys_geteuid();
+        return sys_getuid();
     case SYS_setegid:
-        return sys_setegid((gid_t)a1);
+        return sys_setgid((gid_t)a1);
     case SYS_getegid:
         return sys_getgid();
     case SYS_getenvcurpath:

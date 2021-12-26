@@ -218,7 +218,7 @@ writefile(struct Dir *dir, const char *name) {
     } else if (!strcmp(name, "fs/load/write-only")) {
         f->f_cred.fc_permission = S_IWUSR | S_IWGRP | S_IWOTH;
     } else {
-        f->f_cred.fc_permission = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP /*| S_IROTH     */;
+        f->f_cred.fc_permission = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
     }
 
     start = alloc(st.st_size);
@@ -423,7 +423,7 @@ main(int argc, char **argv) {
         }
     }
 
-    root.f->f_cred.fc_permission = S_IRWXU | S_IRWXG | S_IRWXO;
+    root.f->f_cred.fc_permission = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
     root.f->f_cred.fc_uid = 0;
     root.f->f_cred.fc_gid = 0;
 
