@@ -1,6 +1,7 @@
 #include <inc/fs.h>
 #include <inc/string.h>
 #include <inc/lib.h>
+#include <user/user.h>
 
 union Fsipc fsipcbuf __attribute__((aligned(PAGE_SIZE)));
 
@@ -102,9 +103,8 @@ chown(const char *path, uid_t uid) {
         return -E_BAD_PATH;
     }
 
-
-    // Вместо if(1) проверка что такой юзер существует добавить мб код ошибки (ну или мб просто E_INVAL)
-    if (1) {
+    if (!isuserexist(uid)) {
+        return -E_INVAL;
     }
 
     char tmp_path[MAXPATHLEN];
@@ -129,8 +129,8 @@ chgrp(const char *path, gid_t gid) {
         return -E_BAD_PATH;
     }
 
-    // Вместо if(1) проверка, что такая группа существует + добавить мб код ошибки (ну или мб просто E_INVAL)
-    if (1) {
+    if (0 && !isgroupexist(gid)) { // TODO:ждём пока группы будут реализованы до конца
+        return -E_INVAL;
     }
 
     char tmp_path[MAXPATHLEN];

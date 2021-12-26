@@ -7,6 +7,11 @@
 #define UID_MAX        1024
 #define NBUFSIZ        1024
 
+static gid_t readgid();
+static uid_t readuid();
+int isuserexist(uid_t uid);
+int isgroupexist(gid_t gid);
+
 typedef struct user_t {
     int u_flags;                       /* see below */
     uid_t u_uid;                       /* uid of user */
