@@ -75,11 +75,11 @@ findfreeuid() {
 void
 userinit() {
     user.u_uid = findfreeuid();
-    if(user.u_uid == -1)
+    if (user.u_uid == -1)
         exit();
     user.u_home[0] = '/';
-    strncpy(user.u_home+1, user.u_comment,
-        strlen(user.u_comment) > PATHLEN_MAX? PATHLEN_MAX : strlen(user.u_comment));
+    strncpy(user.u_home + 1, user.u_comment,
+            strlen(user.u_comment) > PATHLEN_MAX ? PATHLEN_MAX : strlen(user.u_comment));
     user.u_primgrp = user.u_uid;
     strncpy(user.u_shell, "/sh", 3);
     user.u_shell[3] = 0;
@@ -104,9 +104,9 @@ useradd() {
     fprintf(fd, "%s:%s:%d:%d:%s:%s\n", user.u_comment, user.u_password, user.u_uid,
             user.u_primgrp, user.u_home, user.u_shell);
     int r;
-    const char * args[3] = {"mkdir", user.u_home, NULL};
+    const char* args[3] = {"mkdir", user.u_home, NULL};
     r = spawn(args[0], args);
-    if(r >= 0)
+    if (r >= 0)
         wait(r);
 }
 
@@ -163,7 +163,7 @@ fillargs(int argc, char** argv) {
                 int len = strlen(argv[i + 1]) > PATHLEN_MAX ? PATHLEN_MAX : strlen(argv[i + 1]);
                 strncpy(user.u_home, argv[i + 1], len);
                 user.u_home[len] = 0;
-                if(!strcmp("/", user.u_home)) {
+                if (!strcmp("/", user.u_home)) {
                     printf("Homepath could not be /\n");
                     exit();
                 }
@@ -184,8 +184,7 @@ fillname(int argc, char** argv) {
         int len = strlen(argv[argc - 1]) > COMMENTLEN_MAX ? COMMENTLEN_MAX : strlen(argv[argc - 1]);
         strncpy(user.u_comment, argv[argc - 1], len);
         user.u_comment[len] = 0;
-    }
-    else
+    } else
         usage();
 }
 
