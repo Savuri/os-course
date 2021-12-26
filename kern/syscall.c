@@ -591,7 +591,7 @@ sys_setegid(gid_t egid) {
 
 static uid_t
 sys_getuid() {
-    return curenv->env_ucred.cr_uid;
+    return curenv->env_ucred.cr_ruid;
 }
 
 static gid_t
