@@ -194,8 +194,9 @@ umain(int argc, char *argv[]) {
     }
     printf("\n");
 
-    sys_setuid(passwd.uid);
     sys_setgid(passwd.gid);
+    /* change uid last, so we have privileges to set up everything */
+    sys_setuid(passwd.uid);
     res = spawnl(passwd.shell, passwd.shell, (char *)0);
     if (res < 0) {
         printf("login: spawn shell: %i\n", res);
