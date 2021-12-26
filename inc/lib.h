@@ -152,6 +152,9 @@ int ftruncate(int fd, off_t size);
 int remove(const char *path);
 int chdir(const char *path);
 int sync(void);
+int chgrp(const char *path, gid_t gid);
+int chown(const char *path, uid_t uid);
+int chmod(const char *path, permission_t permission);
 
 /* spawn.c */
 envid_t spawn(const char *program, const char **argv);

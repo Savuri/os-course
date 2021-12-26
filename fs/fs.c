@@ -351,9 +351,15 @@ walk_path(const char *path, struct File **pdir, struct File **pf, char *lastelem
     int r;
     
     if (!strcmp(path, "/")) {
-        *pdir = &super->s_root;
+        if (pdir) {
+            *pdir = &super->s_root;
+        }
+
         *pf = &super->s_root;
-        *lastelem = '/';
+
+        if (lastelem) {
+            *lastelem = '/';
+        }
         return 0;
     }
     path = skip_slash(path);
@@ -614,7 +620,7 @@ file_remove(const char *path, const struct Ucred *ucred) {
         if ((file_block_walk(dir, i, &blockno, 0)) < 0) {
             panic("file_block_walk in remove");
         }
-        cprintf("FS: block:%d\n", *blockno);
+        // cprintf("FS: block:%d\n", *blockno);
         struct File *f = (struct File *)diskaddr(*blockno);
         for (blockno_t j = BLKFILES - 1; j >= 0; j--) {
             if (f[j].f_name[0] != '\0' || (i == 0 && j == 0)) {
