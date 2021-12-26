@@ -103,7 +103,8 @@ int sys_setegid(gid_t gid);
 uid_t sys_geteuid();
 gid_t sys_getegid();
 
-int sys_getenvcurpath(char buf[MAXPATHLEN], envid_t proc_id);
+int sys_getenvcurpath(char buf[MAXPATHLEN], envid_t envid);
+int sys_setenvcurpath(const char buf[MAXPATHLEN], envid_t envid);
 
 int vsys_gettime(void);
 

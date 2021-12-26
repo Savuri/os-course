@@ -627,6 +627,18 @@ sys_getenvcurpath(char buf[MAXPATHLEN], envid_t envid) {
     return 0;
 }
 
+/*
+ *  Return 0 on success
+ */
+int
+sys_setenvcurpath(const char buf[MAXPATHLEN], envid_t envid) {
+    if (envid == 0) {
+        strncpy(curenv->current_path, buf, MAXPATHLEN);
+        return 0;
+    }
+    return -1;
+}
+
 
 /* Dispatches to the correct kernel function, passing the arguments. */
 uintptr_t

@@ -186,6 +186,34 @@ devfile_trunc(struct Fd *fd, off_t newsize) {
     return fsipc(FSREQ_SET_SIZE, NULL);
 }
 
+/*change current directory*/
+void
+cd(const char *path) {
+    if (strlen(path) >= MAXPATHLEN) {
+        cprintf("Path is too long");
+        return;
+    }
+
+    char req_path[MAXPATHLEN];
+    sys_getenvcurpath(req_path, 0);
+    char tmp_path[MAXPATHLEN];
+    strncpy(tmp_path, path, MAXPATHLEN);
+    NormalizePath(req_path, tmp_path);
+
+    strncpy(fsipcbuf.accessdir.req_path, req_path, MAXPATHLEN);
+    int res = fsipc(FSREQ_ACCESSDIR, NULL);
+    if (!res) {
+        sys_setenvcurpath(req_path, 0);
+        return;
+    }
+
+    if (res == -E_ACCES) {
+        cprintf("permission denied\n");
+    } else {
+        cprintf("directory %s does not exist\n", path);
+    }    
+}
+
 /* Synchronize disk with buffer cache */
 int
 sync(void) {
