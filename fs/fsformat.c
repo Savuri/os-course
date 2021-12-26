@@ -213,6 +213,10 @@ writefile(struct Dir *dir, const char *name) {
 
     if (*name == 'o') {
         f->f_cred.fc_permission = S_IRWXU | S_IRWXG | S_IRWXO;
+    } else if (strcmp(name, "fs/load/read-only")) {
+        f->f_cred.fc_permission = S_IRUSR | S_IRGRP | S_IROTH;
+    } else if (strcmp(name, "fs/load/write-only")) {
+        f->f_cred.fc_permission = S_IWUSR | S_IWGRP | S_IWOTH;
     } else {
         f->f_cred.fc_permission = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP /*| S_IROTH     */;
     }

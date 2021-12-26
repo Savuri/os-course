@@ -126,7 +126,8 @@ KERN_BINFILES :=	user/hello \
             user/seteuid \
             user/setuid \
             user/setgid \
-            user/setegid
+            user/setegid \
+            user/testfsrwonly
 
 KERN_BINFILES := $(patsubst %, $(OBJDIR)/%, $(KERN_BINFILES))
 endif

@@ -609,6 +609,24 @@ sys_getegid() {
     return curenv->env_ucred.cr_gid;
 }
 
+/*
+ *  Return 0 on success
+ */
+int
+sys_getenvcurpath(char buf[MAXPATHLEN], envid_t envid) {
+    if (envid == 0) {
+        strncpy(buf, curenv->current_path, MAXPATHLEN);
+        return 0;
+    }
+    struct Env* env = &envs[ENVX(envid)];
+    if (env->env_status == ENV_FREE || env->env_id != envid) {
+        return -E_BAD_ENV;
+    }
+    strncpy(buf, env->current_path, MAXPATHLEN);
+    return 0;
+}
+
+
 /* Dispatches to the correct kernel function, passing the arguments. */
 uintptr_t
 syscall(uintptr_t syscallno, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t a4, uintptr_t a5, uintptr_t a6) {
@@ -669,7 +687,9 @@ syscall(uintptr_t syscallno, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t
     case SYS_setegid:
         return sys_setegid((gid_t)a1);
     case SYS_getegid:
-        return sys_getegid();
+        return sys_getgid();
+    case SYS_getenvcurpath:
+        return sys_getenvcurpath((char*)a1, (envid_t)a2);
     default:
         cprintf("Unexpected in syscall\n");
     }
