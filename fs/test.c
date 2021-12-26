@@ -67,11 +67,15 @@ fs_test(void) {
     check_consistency();
     cprintf("fs consistency is good\n");
 
-    if ((r = file_open("/not-found", &f)) < 0 && r != -E_NOT_FOUND)
+    // TODO: placeholder for test
+    struct Ucred ucred;
+    memset(&ucred, 0, sizeof(ucred));
+
+    if ((r = file_open("/not-found", &f, &ucred)) < 0 && r != -E_NOT_FOUND)
         panic("file_open /not-found: %i", r);
     else if (r == 0)
         panic("file_open /not-found succeeded!");
-    if ((r = file_open("/newmotd", &f)) < 0)
+    if ((r = file_open("/newmotd", &f, &ucred)) < 0)
         panic("file_open /newmotd: %i", r);
     cprintf("file_open is good\n");
 
