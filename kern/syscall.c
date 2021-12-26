@@ -687,7 +687,7 @@ syscall(uintptr_t syscallno, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t
     case SYS_setegid:
         return sys_setegid((gid_t)a1);
     case SYS_getegid:
-        return sys_getgid();
+        return sys_getegid();
     case SYS_getenvcurpath:
         return sys_getenvcurpath((char*)a1, (envid_t)a2);
     default:
