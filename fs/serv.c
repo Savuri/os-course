@@ -162,7 +162,9 @@ serve_open(envid_t envid, struct Fsreq_open *req,
      * store its permission in *perm_store */
     *pg_store = o->o_fd;
     *perm_store = PROT_RW | PROT_SHARE;
-
+    if (req->req_omode & O_APPEND) {
+        o->o_fd->fd_offset = o->o_file->f_size;
+    }
     return 0;
 }
 
