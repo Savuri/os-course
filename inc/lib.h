@@ -150,6 +150,7 @@ void NormalizePath(char cur_dir[MAXPATHLEN], char path[MAXPATHLEN]);
 int open(const char *path, int mode);
 int ftruncate(int fd, off_t size);
 int remove(const char *path);
+int chdir(const char *path);
 int sync(void);
 
 /* spawn.c */
