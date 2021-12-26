@@ -41,7 +41,7 @@ USERAPPS :=		$(OBJDIR)/user/init \
 		    $(OBJDIR)/user/seteuid \
             $(OBJDIR)/user/setuid \
             $(OBJDIR)/user/setgid \
-            $(OBJDIR)/user/setegid
+            $(OBJDIR)/user/setegid \
 			$(OBJDIR)/user/testfsrwonly \
 
 
