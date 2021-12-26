@@ -8,6 +8,9 @@ char buf[256];
 
 user_t user;
 
+/*
+ *  read line from fd to buf[]
+ */
 int
 getline(int fd) {
     int i = 0;
@@ -25,6 +28,9 @@ getline(int fd) {
     return 1;
 }
 
+/*
+ *  save uid to uids[] 
+ */
 void
 saveuid() {
     char uid[5];
@@ -42,6 +48,9 @@ saveuid() {
     uids[(int)strtol(uid, NULL, 10)] = 1;
 }
 
+/*
+ *  Returns lowest free uid if exists
+ */
 uid_t
 findfreeuid() {
     int r;
@@ -56,7 +65,8 @@ findfreeuid() {
     for (int i = 0; i < UID_MAX; i++)
         if (!uids[i])
             return i;
-    return 0; //out of uids
+    printf("No free uids\n");
+    exit(); //out of uids
 }
 
 /*
@@ -112,6 +122,9 @@ strpbrk(char* str, char* set) {
     return 0;
 }
 
+/*
+ *  parse nonflag args to user_t user
+ */
 int
 fillargs(int argc, char** argv) {
     for (int i = 0; i < argc; i++) {

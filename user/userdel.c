@@ -6,6 +6,9 @@ user_t users[UID_MAX];
 char buf[256];
 int r = 0;
 
+/*
+ *  read line from fd
+ */
 int
 getline(int fd) {
     int i = 0;
@@ -23,6 +26,9 @@ getline(int fd) {
     return 1;
 }
 
+/*
+ *  Returns 1 if user should be deleted else 0
+ */
 int
 isdeluser(char* name) {
     int i;
@@ -35,6 +41,9 @@ isdeluser(char* name) {
     return 1;
 }
 
+/*
+ *  save position of : in line
+ */
 void
 getargs(int iargs[]) {
     int k = 0;
@@ -49,6 +58,9 @@ getargs(int iargs[]) {
     iargs[k] = i;
 }
 
+/*
+ *  copy userdata from /etc/passwd to users[]
+ */
 void
 saveuser() {
     int iargs[6];
@@ -63,6 +75,9 @@ saveuser() {
     strncpy(users[userid].u_shell, buf + iargs[4] + 1, iargs[5] - iargs[4]);
 }
 
+/*
+ *  fill new /etc/passwd with userdata
+ */
 void
 printusers(int fd) {
     for (int i = 0; i < UID_MAX; i++) {
@@ -73,6 +88,9 @@ printusers(int fd) {
     }
 }
 
+/*
+ *  init uids in users[]
+ */
 void
 initusers() {
     for (int i = 0; i < UID_MAX; i++)
