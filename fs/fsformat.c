@@ -220,15 +220,23 @@ writefile(struct Dir *dir, const char *name) {
     } else if (!strncmp(user, name, sizeof(user) - 1)) {
         f->f_cred.fc_uid = 1000;
         f->f_cred.fc_gid = 1000;
-    } else if (!strncmp(user, name, sizeof(user) - 1)) {
+    } else {
         f->f_cred.fc_uid = 0;
         f->f_cred.fc_gid = 0;
     }
 
-    printf("cur %s\n", name);
     if (!strncmp(name, "obj/", 4)) {
         f->f_cred.fc_permission = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
-    } else if (!strcmp(name, "fs/load/read-only")) {
+    } else if (!strcmp(name, shadow)) {
+        f->f_cred.fc_permission = S_IRUSR | S_IWUSR | S_IRGRP;
+    } else if (!strncmp(name, etc, sizeof(etc) - 1)) {
+        f->f_cred.fc_permission = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+    } else {
+        f->f_cred.fc_permission = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
+    }
+
+    //test
+    if (!strcmp(name, "fs/load/read-only")) {
         f->f_cred.fc_permission = S_IRUSR | S_IRGRP | S_IROTH;
         f->f_cred.fc_uid = 1;
         f->f_cred.fc_gid = 1;
@@ -236,12 +244,6 @@ writefile(struct Dir *dir, const char *name) {
         f->f_cred.fc_permission = S_IWUSR | S_IWGRP | S_IWOTH;
         f->f_cred.fc_uid = 1;
         f->f_cred.fc_gid = 1;
-    } else if (!strcmp(name, shadow)) {
-        f->f_cred.fc_permission = S_IRUSR | S_IWUSR | S_IRGRP;
-    } else if (!strncmp(name, etc, sizeof(etc) - 1)) {
-        f->f_cred.fc_permission = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
-    } else {
-        f->f_cred.fc_permission = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
     }
 
     start = alloc(st.st_size);
