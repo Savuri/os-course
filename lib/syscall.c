@@ -193,6 +193,6 @@ sys_getenvcurpath(char buf[MAXPATHLEN], envid_t envid) {
 }
 
 int
-sys_setenvcurpath(const char* buf) {
+sys_setenvcurpath(const char *buf) {
     return syscall(SYS_setenvcurpath, 0, (uintptr_t)buf, 0, 0, 0, 0, 0);
 }
