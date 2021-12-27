@@ -69,8 +69,6 @@ umain(int argc, char** argv) {
         fprintf(fd, "%s:%s\n", gid, uid);
         close(fd);
     }
-    else{
-        printf("here\n");
+    else
         groupmod();
-    }
 }
