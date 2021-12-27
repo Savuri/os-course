@@ -129,7 +129,7 @@ chgrp(const char *path, gid_t gid) {
         return -E_BAD_PATH;
     }
 
-    if (0 && !isgroupexist(gid)) { // TODO:ждём пока группы будут реализованы до конца
+    if (!isgroupexist(gid)) {
         return -E_INVAL;
     }
 

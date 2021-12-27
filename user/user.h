@@ -1,11 +1,11 @@
 #ifndef USER_H
 #define USER_H
 
-#define COMMENTLEN_MAX 32
-#define PATHLEN_MAX    64
-#define PASSLEN_MAX    64
-#define UID_MAX        1024
-#define NBUFSIZ        1024
+#define COMMENTLEN_MAX    32
+#define PATHLEN_MAX       64
+#define PASSLEN_MAX       64
+#define UID_MAX           1024
+#define NBUFSIZ           1024
 #define NUSERSINGROUP_MAX 30
 
 static gid_t readgid();

@@ -2,7 +2,7 @@
 #include <user/user.h>
 #include <inc/string.h>
 
-static char user_file_buf[256];
+static char user_file_buf[NBUFSIZ];
 
 static uid_t
 readuid() {
@@ -13,21 +13,19 @@ readuid() {
             cnt++;
     i++;
     int l = i;
-    int r = i;
-    for (; user_file_buf[i] != ':'; i++, r++)
+    for (; user_file_buf[i] != ':'; i++)
         ;
-    user_file_buf[r] = 0;
-    return (uid_t)(strtol(&user_file_buf[l], NULL, 10));
+    user_file_buf[i] = 0;
+    return (uid_t)(strtol(user_file_buf + l - 1, NULL, 10));
 }
 
 static gid_t
 readgid() {
     int i = 0;
-    int l = i;
     for (; user_file_buf[i] != ':'; i++)
         ;
     user_file_buf[i] = 0;
-    return (gid_t)(strtol(&user_file_buf[l], NULL, 10));
+    return (gid_t)(strtol(user_file_buf, NULL, 10));
 }
 
 int
@@ -35,22 +33,24 @@ isuserexist(uid_t uid) {
     int fd = open("/etc/passwd", O_RDONLY);
     if (fd < 0)
         return 0;
-    while (getline(fd, user_file_buf, 256) == 1) {
+    while (getline(fd, user_file_buf, NBUFSIZ) == 1) {
         if (uid == readuid())
             return 1;
     }
+    close(fd);
     return 0;
 }
 
 int
 isgroupexist(gid_t gid) {
 
-    int fd = open("/etc/groups", O_RDONLY);
+    int fd = open("/etc/group", O_RDONLY);
     if (fd < 0)
         return 0;
-    while (getline(fd, user_file_buf, 256)) {
+    while (getline(fd, user_file_buf, NBUFSIZ)) {
         if (gid == readgid())
             return 1;
     }
+    close(fd);
     return 0;
 }
