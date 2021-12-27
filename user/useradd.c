@@ -67,6 +67,33 @@ userinit() {
     user.u_password[0] = 0;
 }
 
+void
+itoa(int i, char *string) {
+	int power = 0, j = 0;
+ 
+	j = i;
+	for (power = 1; j>10; j /= 10)
+		power *= 10;
+ 
+	for (; power>0; power /= 10)
+	{
+		*string++ = '0' + i / power;
+		i %= power;
+	}
+	*string = 0;
+}
+
+void
+makearg(char* giduid, uid_t uid, gid_t gid) {
+    itoa(uid, giduid);
+    int i = 0;
+    while(giduid[i])
+        i++;
+    giduid[i] = ':';
+    i++;
+    itoa(gid, giduid + i);
+}
+
 /*
  * write or update userinfo to /etc/passwd
  */
@@ -85,10 +112,23 @@ useradd() {
     fprintf(fd, "%s:%s:%d:%d::%s:%s\n", user.u_comment, user.u_password, user.u_uid,
             user.u_primgrp, user.u_home, user.u_shell);
     int r;
-    printf("home = %s!\n", user.u_home);
-    const char* args[3] = {"mkdir", user.u_home, NULL};
+    const char* args[2] = {"mkdir", user.u_home};
     r = spawn(args[0], args);
     if (r >= 0)
+        wait(r);
+    char giduid[10];
+    makearg(giduid, user.u_uid, user.u_primgrp);
+    const char* args2[3] = {"chown", giduid, user.u_home};
+    r = spawn(args2[0], args2);
+    if(r >= 0)
+        wait(r);
+    int s = 0;
+    while(giduid[s] != ':')
+        s++;
+    giduid[s] = 0;
+    const char* args3[3] = {"groupmod", giduid, giduid + s + 1};
+    r = spawn(args3[0], args3);
+    if(r >= 0)
         wait(r);
 }
 
