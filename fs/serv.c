@@ -279,7 +279,6 @@ serve_stat(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
     struct OpenFile *o;
     int res = openfile_lookup(envid, req->req_fileid, &o);
     if (res < 0) return res;
-    if ((o->o_fd->fd_omode & O_ACCMODE) == O_WRONLY) return -E_ACCES;
 
     strcpy(ret->ret_name, o->o_file->f_name);
     ret->ret_size = o->o_file->f_size;
