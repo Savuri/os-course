@@ -14,16 +14,16 @@ usage() {
  *  pos :
  */
 int
-finddelim(char * arg) {
+finddelim(char* arg) {
     long int i = 0;
     long int res;
-    while((arg[i] != ':') && (i < strlen(arg)))
+    while ((arg[i] != ':') && (i < strlen(arg)))
         i++;
-    if(arg[i] == ':'){
+    if (arg[i] == ':') {
         res = i;
-        while(i < strlen(arg)){
+        while (i < strlen(arg)) {
             i++;
-            if(arg[i] == ':')
+            if (arg[i] == ':')
                 res = -2;
         }
         return res;
@@ -33,19 +33,19 @@ finddelim(char * arg) {
 
 void
 umain(int argc, char** argv) {
-    if(argc != 3){
+    if (argc != 3) {
         usage();
         return;
     }
     int delim = finddelim(argv[1]);
-    if(delim < 0)
+    if (delim < -1)
         usage();
     argv[delim] = 0;
-    //path check?
-    if(chown(argv[2], (uid_t)(strtol(argv[1], NULL, 10)))){
+    if (chown(argv[2], (uid_t)(strtol(argv[1], NULL, 10)))) {
         printf("Bad chown\n");
         exit();
     }
-    if(chgrp(argv[2], (gid_t)(strtol(argv[1]+delim+1, NULL, 10))))
-        printf("Bad chgrp\n");
+    if (delim == -1)
+        if (chgrp(argv[2], (gid_t)(strtol(argv[1] + delim + 1, NULL, 10))))
+            printf("Bad chgrp\n");
 }

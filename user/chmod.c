@@ -2,17 +2,18 @@
 #include <user/user.h>
 #include <inc/string.h>
 
-char* gid;
-char* uid;
-
 void
 usage() {
-    printf("usage:chmod UID[:GID] FILEPATH\n");
+    printf("usage:chmod MASK(NNNN) FILEPATH\n");
     exit();
 }
 
 void
 umain(int argc, char** argv) {
-    if(argc != 3)
+    if (argc != 3)
         usage();
+    int arg = strtol(argv[1], NULL, 16);
+    permission_t mask = 0x0FFF & arg;
+    if (chmod(argv[2], mask))
+        printf("Bad chmod\n");
 }
