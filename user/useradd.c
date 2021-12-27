@@ -120,17 +120,17 @@ useradd() {
     makearg(giduid, user.u_uid, user.u_primgrp);
     char uidarg[4];
     itoa(user.u_uid, uidarg);
-    r = spawnl("/chown", "/chown", uidarg, user.u_home, NULL);
-    if(r < 0)
-        printf("err\n");
-    if(r >= 0)
-        wait(r);
     int s = 0;
     while(giduid[s] != ':'){
         s++;
     }
     giduid[s] = 0;
     r = spawnl("/groupmod", "/groupmod", giduid, giduid + s + 1, NULL);
+    if(r < 0)
+        printf("err\n");
+    if(r >= 0)
+        wait(r);
+    r = spawnl("/chown", "/chown", uidarg, user.u_home, NULL);
     if(r < 0)
         printf("err\n");
     if(r >= 0)
