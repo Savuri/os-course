@@ -34,9 +34,9 @@ isdeluser(char* name) {
         char home[PATHLEN_MAX];
         home[0] = '/';
         gethome(home);
-        const char* argv[3] = {"rm", home, NULL};
+        const char* argv[3] = {"/rm", home, NULL};
         printf("home = %s!\n", argv[1]);
-        int r = spawn("rm", argv);
+        int r = spawn("/rm", argv);
         if (r >= 0)
             wait(r);
     }

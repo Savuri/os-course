@@ -85,13 +85,13 @@ itoa(int i, char *string) {
 
 void
 makearg(char* giduid, uid_t uid, gid_t gid) {
-    itoa(uid, giduid);
+    itoa(gid, giduid);
     int i = 0;
     while(giduid[i])
         i++;
     giduid[i] = ':';
     i++;
-    itoa(gid, giduid + i);
+    itoa(uid, giduid + i);
 }
 
 /*
@@ -112,13 +112,13 @@ useradd() {
     fprintf(fd, "%s:%s:%d:%d::%s:%s\n", user.u_comment, user.u_password, user.u_uid,
             user.u_primgrp, user.u_home, user.u_shell);
     int r;
-    const char* args[2] = {"mkdir", user.u_home};
+    const char* args[2] = {"/mkdir", user.u_home};
     r = spawn(args[0], args);
     if (r >= 0)
         wait(r);
     char giduid[10];
     makearg(giduid, user.u_uid, user.u_primgrp);
-    const char* args2[3] = {"chown", giduid, user.u_home};
+    const char* args2[3] = {"/chown", giduid, user.u_home};
     r = spawn(args2[0], args2);
     if(r >= 0)
         wait(r);
@@ -126,7 +126,8 @@ useradd() {
     while(giduid[s] != ':')
         s++;
     giduid[s] = 0;
-    const char* args3[3] = {"groupmod", giduid, giduid + s + 1};
+    printf("%s %s\n", giduid + s + 1, giduid);
+    const char* args3[3] = {"/groupmod", giduid + s + 1, giduid};
     r = spawn(args3[0], args3);
     if(r >= 0)
         wait(r);
