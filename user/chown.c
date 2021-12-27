@@ -40,7 +40,8 @@ umain(int argc, char** argv) {
     int delim = finddelim(argv[1]);
     if (delim < -1)
         usage();
-    argv[delim] = 0;
+    if(delim > 0)
+        argv[1][delim] = 0;
     if (chown(argv[2], (uid_t)(strtol(argv[1], NULL, 10)))) {
         printf("Bad chown\n");
         exit();

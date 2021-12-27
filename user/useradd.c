@@ -111,24 +111,24 @@ useradd() {
     int fd = open("/etc/passwd", O_WRONLY | O_CREAT | O_APPEND);
     fprintf(fd, "%s:%s:%d:%d::%s:%s\n", user.u_comment, user.u_password, user.u_uid,
             user.u_primgrp, user.u_home, user.u_shell);
+    close(fd);
     int r;
-    const char* args[2] = {"/mkdir", user.u_home};
-    r = spawn(args[0], args);
+    r = spawnl("mkdir", "/mkdir", user.u_home, NULL);
     if (r >= 0)
         wait(r);
     char giduid[10];
     makearg(giduid, user.u_uid, user.u_primgrp);
-    const char* args2[3] = {"/chown", giduid, user.u_home};
-    r = spawn(args2[0], args2);
+    char uidarg[4];
+    itoa(user.u_uid, uidarg);
+    r = spawnl("chown", "/chown", uidarg, user.u_home, NULL);
     if(r >= 0)
         wait(r);
     int s = 0;
-    while(giduid[s] != ':')
+    while(giduid[s] != ':'){
         s++;
+    }
     giduid[s] = 0;
-    printf("%s %s\n", giduid + s + 1, giduid);
-    const char* args3[3] = {"/groupmod", giduid + s + 1, giduid};
-    r = spawn(args3[0], args3);
+    r = spawnl("groupmod", "/groupmod", giduid + s + 1, giduid, NULL);
     if(r >= 0)
         wait(r);
 }
@@ -194,7 +194,7 @@ fillargs(int argc, char** argv) {
             if (res == 'g') {
                 gid_t gid = (gid_t)strtol(argv[i + 1], NULL, 10);
                 if (gid > 0 && gid < UID_MAX)
-                    user.u_primgrp = user.u_uid;
+                    user.u_primgrp = gid;
             }
         }
     }
