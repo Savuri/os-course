@@ -235,7 +235,7 @@ writefile(struct Dir *dir, const char *name) {
         f->f_cred.fc_permission = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
     }
 
-    //test
+    // test
     if (!strcmp(name, "fs/load/read-only")) {
         f->f_cred.fc_permission = S_IRUSR | S_IRGRP | S_IROTH;
         f->f_cred.fc_uid = 1;
