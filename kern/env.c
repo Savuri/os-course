@@ -125,6 +125,8 @@ env_init(void) {
         envs[i].env_ucred.cr_gid = 0;
         envs[i].env_ucred.cr_ruid = 0;
         envs[i].env_ucred.cr_rgid = 0;
+        envs[i].current_path[0] = '/';
+        envs[i].current_path[1] = '\0';
     }
 
     envs[NENV - 1].env_status = ENV_FREE;
