@@ -242,6 +242,23 @@ gettoken(char *s, char **p1) {
     return c;
 }
 
+int
+cd(char *buf) {
+    int res;
+
+    if (strncmp(buf, "cd ", 3))
+        return 0;
+    buf += 3;
+    while (*buf == ' ')
+        buf++;
+    res = chdir(buf);
+    if (res < 0) {
+        printf("cd failed: %i\n", res);
+        return res;
+    }
+    return 1;
+}
+
 void
 usage(void) {
     cprintf("usage: sh [-dix] [command-file]\n");
@@ -294,6 +311,8 @@ umain(int argc, char **argv) {
         if (buf[0] == '#') continue;
         if (echocmds) printf("# %s\n", buf);
         if (debug) cprintf("BEFORE FORK\n");
+        if (cd(buf))
+            continue;
         if ((r = fork()) < 0) panic("fork: %i", r);
         if (debug) cprintf("FORK: %d\n", r);
         if (r == 0) {
