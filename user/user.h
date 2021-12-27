@@ -8,6 +8,11 @@
 #define NBUFSIZ        1024
 #define NUSERSINGROUP_MAX 30
 
+static gid_t readgid();
+static uid_t readuid();
+int isuserexist(uid_t uid);
+int isgroupexist(gid_t gid);
+
 typedef struct user_t {
     int u_flags;                       /* see below */
     uid_t u_uid;                       /* uid of user */
@@ -24,7 +29,7 @@ typedef struct user_t {
     char *u_skeldir;                   /* directory for startup files */
     char *u_class;                     /* login class */
     unsigned int u_rsize;              /* size of range array */
-    unsigned int u_rc;                      /* the ranges */
+    unsigned int u_rc;                 /* # of ranges */
     unsigned int u_defrc;              /* # of ranges in defaults */
     int u_preserve;                    /* preserve uids on deletion */
 } user_t;

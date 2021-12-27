@@ -3,34 +3,14 @@
 #include <inc/string.h>
 
 user_t users[UID_MAX];
-char buf[256];
+char buf[NBUFSIZ];
 int r = 0;
-
-/*
- *  read line from fd
- */
-int
-getline(int fd) {
-    int i = 0;
-    int r = read(fd, &buf[i], 1);
-    if (!r)
-        return 0;
-    while (buf[i] != '\n') {
-        i++;
-        r = read(fd, &buf[i], 1);
-        if (!r)
-            return 0;
-    }
-    i++;
-    buf[i] = 0;
-    return 1;
-}
 
 void
 gethome(char home[]) {
     int i;
     int cnt = 0;
-    for (i = 0; cnt != 4; i++)
+    for (i = 0; cnt != 5; i++)
         if (buf[i] == ':')
             cnt++;
     i++;
@@ -122,7 +102,7 @@ userdel(char* name) {
     int n;
     initusers();
     int fd = open("/etc/passwd", O_RDONLY);
-    while ((n = getline(fd)) != 0) {
+    while ((n = getline(fd, buf, NBUFSIZ)) > 0) {
         if (!isdeluser(name))
             saveuser();
     }

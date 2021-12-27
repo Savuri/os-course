@@ -31,12 +31,16 @@ void fs_init(void);
 int file_get_block(struct File *f, uint32_t file_blockno, char **pblk);
 int file_create(const char *path, struct File **f, int type, const struct Ucred *ucred);
 int file_block_walk(struct File *f, uint32_t filebno, uint32_t **ppdiskbno, bool alloc);
-int file_open(const char *path, struct File **f, const struct Ucred *ucred);
+int file_open(const char *path, struct File **f, const struct Ucred *ucred, int mode);
 ssize_t file_read(struct File *f, void *buf, size_t count, off_t offset);
 ssize_t file_write(struct File *f, const void *buf, size_t count, off_t offset);
 int file_set_size(struct File *f, off_t newsize);
 void file_flush(struct File *f);
 int file_remove(const char *path, const struct Ucred *ucred);
+int file_chmod(const char *path, permission_t perm, const struct Ucred *ucred);
+int file_chown(const char *path, uid_t uid, const struct Ucred *ucred);
+int file_chgrp(const char *path, gid_t gid, const struct Ucred *ucred);
+int accessdir(const char *path, const struct Ucred *ucred);
 void fs_sync(void);
 int groupmember(gid_t gid, const struct Ucred *cred);
 int access(uint32_t type, struct Fcred fcred, int acc_mode, const struct Ucred *cred);
@@ -45,8 +49,7 @@ enum mode {
     WRITE = 0200,
     EXEC = 0100,
     SUID = 04000,
-    SGID = 02000,
-    SVTX = 01000 // Выглядит как то что мы не рализуем
+    SGID = 02000
 };
 
 /* int  map_block(uint32_t); */

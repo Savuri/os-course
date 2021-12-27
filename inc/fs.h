@@ -106,7 +106,11 @@ enum {
     FSREQ_STAT,
     FSREQ_FLUSH,
     FSREQ_REMOVE,
-    FSREQ_SYNC
+    FSREQ_SYNC,
+    FSREQ_CHMOD,
+    FSREQ_CHOWN,
+    FSREQ_CHGRP,
+    FSREQ_ACCESSDIR
 };
 
 union Fsipc {
@@ -145,7 +149,21 @@ union Fsipc {
     struct Fsreq_remove {
         char req_path[MAXPATHLEN];
     } remove;
-
+    struct Fsreq_chmod {
+        char req_path[MAXPATHLEN];
+        permission_t req_perm;
+    } chmod;
+    struct Fsreq_chown {
+        char req_path[MAXPATHLEN];
+        uid_t req_uid;
+    } chown;
+    struct Fsreq_chgrp {
+        char req_path[MAXPATHLEN];
+        gid_t req_gid;
+    } chgrp;
+    struct Fsreq_accessdir {
+        char req_path[MAXPATHLEN];
+    } accessdir;
     /* Ensure Fsipc is one page */
     char _pad[PAGE_SIZE];
 };

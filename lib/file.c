@@ -1,6 +1,7 @@
 #include <inc/fs.h>
 #include <inc/string.h>
 #include <inc/lib.h>
+#include <user/user.h>
 
 union Fsipc fsipcbuf __attribute__((aligned(PAGE_SIZE)));
 
@@ -79,7 +80,7 @@ open(const char *path, int mode) {
     strncpy(tmp_path, path, MAXPATHLEN);
     sys_getenvcurpath(fsipcbuf.open.req_path, 0);
     NormalizePath(fsipcbuf.open.req_path, tmp_path);
- 
+
     fsipcbuf.open.req_omode = mode;
 
     if ((res = fsipc(FSREQ_OPEN, fd)) < 0) {
@@ -88,6 +89,82 @@ open(const char *path, int mode) {
     }
 
     return fd2num(fd);
+}
+
+/*
+ * path of file to change ownership
+ * uid - uid_t value to set
+ * ok - ret 0
+ * otherwise < 0
+ */
+int
+chown(const char *path, uid_t uid) {
+    if (strlen(path) >= MAXPATHLEN) {
+        return -E_BAD_PATH;
+    }
+
+    if (!isuserexist(uid)) {
+        return -E_INVAL;
+    }
+
+    char tmp_path[MAXPATHLEN];
+    strncpy(tmp_path, path, MAXPATHLEN);
+    sys_getenvcurpath(fsipcbuf.chown.req_path, 0);
+    NormalizePath(fsipcbuf.chown.req_path, tmp_path);
+
+    fsipcbuf.chown.req_uid = uid;
+
+    return fsipc(FSREQ_CHOWN, NULL);
+}
+
+/*
+ * path of file to change group
+ * gid - uid_t value to set
+ * ok - ret 0
+ * otherwise < 0
+ */
+int
+chgrp(const char *path, gid_t gid) {
+    if (strlen(path) >= MAXPATHLEN) {
+        return -E_BAD_PATH;
+    }
+
+    if (0 && !isgroupexist(gid)) { // TODO:ждём пока группы будут реализованы до конца
+        return -E_INVAL;
+    }
+
+    char tmp_path[MAXPATHLEN];
+    strncpy(tmp_path, path, MAXPATHLEN);
+    sys_getenvcurpath(fsipcbuf.chgrp.req_path, 0);
+    NormalizePath(fsipcbuf.chgrp.req_path, tmp_path);
+
+
+    fsipcbuf.chgrp.req_gid = gid;
+
+    return fsipc(FSREQ_CHGRP, NULL);
+}
+
+/*
+ * path of file to change permission
+ * ok - ret 0
+ * otherwise < 0
+ */
+int
+chmod(const char *path, permission_t permission) {
+    if (strlen(path) >= MAXPATHLEN) {
+        return -E_BAD_PATH;
+    }
+
+    permission &= 0xdff; // get only permission bits
+
+    char tmp_path[MAXPATHLEN];
+    strncpy(tmp_path, path, MAXPATHLEN);
+    sys_getenvcurpath(fsipcbuf.chmod.req_path, 0);
+    NormalizePath(fsipcbuf.chmod.req_path, tmp_path);
+
+    fsipcbuf.chmod.req_perm = permission;
+
+    return fsipc(FSREQ_CHMOD, NULL);
 }
 
 int
@@ -184,6 +261,27 @@ devfile_trunc(struct Fd *fd, off_t newsize) {
     fsipcbuf.set_size.req_size = newsize;
 
     return fsipc(FSREQ_SET_SIZE, NULL);
+}
+
+/*change current directory*/
+int
+chdir(const char *path) {
+    if (strlen(path) >= MAXPATHLEN) {
+        return -E_BAD_PATH;
+    }
+
+    char req_path[MAXPATHLEN];
+    sys_getenvcurpath(req_path, 0);
+    char tmp_path[MAXPATHLEN];
+    strncpy(tmp_path, path, MAXPATHLEN);
+    NormalizePath(req_path, tmp_path);
+
+    strncpy(fsipcbuf.accessdir.req_path, req_path, MAXPATHLEN);
+    int res = fsipc(FSREQ_ACCESSDIR, NULL);
+    if (res) {
+        return res;
+    }
+    return sys_setenvcurpath(req_path);
 }
 
 /* Synchronize disk with buffer cache */

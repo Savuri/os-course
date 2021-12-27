@@ -7,7 +7,9 @@ FSOFILES := 		$(OBJDIR)/fs/ide.o \
 			$(OBJDIR)/fs/serv.o \
 			$(OBJDIR)/fs/test.o \
 
-FSIMGDIRS := fs/load/etc
+FSIMGDIRS := fs/load/etc \
+             fs/load/home \
+             fs/load/root
 
 FSIMGTXTFILES :=	fs/load/newmotd \
 			fs/load/motd \
@@ -36,6 +38,8 @@ USERAPPS :=		$(OBJDIR)/user/init \
 			$(OBJDIR)/user/hello \
 			$(OBJDIR)/user/date \
 			$(OBJDIR)/user/vdate \
+			$(OBJDIR)/user/login \
+			$(OBJDIR)/user/test_cred\
 			$(OBJDIR)/user/useradd \
 			$(OBJDIR)/user/userdel \
 			$(OBJDIR)/user/rm \
@@ -47,6 +51,8 @@ USERAPPS :=		$(OBJDIR)/user/init \
 			$(OBJDIR)/user/testfsrwonly \
 			$(OBJDIR)/user/useradd \
 			$(OBJDIR)/user/userdel \
+			$(OBJDIR)/user/testchdir \
+			$(OBJDIR)/user/testfscreate \
 
 
 FSIMGFILES := $(FSIMGTXTFILES) $(USERAPPS) $(FSIMGDIRS)

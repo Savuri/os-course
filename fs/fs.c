@@ -349,9 +349,19 @@ walk_path(const char *path, struct File **pdir, struct File **pf, char *lastelem
     char name[MAXNAMELEN];
     struct File *dir, *f;
     int r;
+    
+    if (!strcmp(path, "/")) {
+        if (pdir) {
+            *pdir = &super->s_root;
+        }
 
-    // if (*path != '/')
-    //     return -E_BAD_PATH;
+        *pf = &super->s_root;
+
+        if (lastelem) {
+            *lastelem = '/';
+        }
+        return 0;
+    }
     path = skip_slash(path);
     f = &super->s_root;
     dir = 0;
@@ -442,13 +452,27 @@ file_create(const char *path, struct File **pf, int type, const struct Ucred *uc
 /* Open "path".  On success set *pf to point at the file and return 0.
  * On error return < 0. */
 int
-file_open(const char *path, struct File **pf, const struct Ucred *ucred) {
+file_open(const char *path, struct File **pf, const struct Ucred *ucred, int mode) {
     int res;
     if ((res = walk_path(path, 0, pf, 0, ucred)) < 0) {
         return res;
     }
 
-    if ((res = access((*pf)->f_type, (*pf)->f_cred, READ, ucred)) < 0) {
+    int acc_mode = 0;
+
+    if (mode == O_RDONLY) {
+        acc_mode = READ;
+    } else if (mode == O_WRONLY) {
+        acc_mode = WRITE;
+    } else if (mode == O_RDWR) {
+        acc_mode = READ | WRITE;
+    }
+
+    if (acc_mode == 0) {
+        panic("Open without any read, write flag\n");
+    }
+
+    if ((res = access((*pf)->f_type, (*pf)->f_cred, acc_mode, ucred)) < 0) {
         return res;
     }
 
@@ -596,7 +620,7 @@ file_remove(const char *path, const struct Ucred *ucred) {
         if ((file_block_walk(dir, i, &blockno, 0)) < 0) {
             panic("file_block_walk in remove");
         }
-        cprintf("FS: block:%d\n", *blockno);
+        // cprintf("FS: block:%d\n", *blockno);
         struct File *f = (struct File *)diskaddr(*blockno);
         for (blockno_t j = BLKFILES - 1; j >= 0; j--) {
             if (f[j].f_name[0] != '\0' || (i == 0 && j == 0)) {
@@ -612,6 +636,25 @@ file_remove(const char *path, const struct Ucred *ucred) {
             }
         }
     }
+}
+
+/*
+ * check if the current env have permision to each dir in path
+ * return 0 on success
+ * return < 0 on error
+ */
+int
+accessdir(const char *path, const struct Ucred *ucred) {
+    struct File *rm_file, *dir;
+    char last;
+
+    int ret = walk_path(path, &dir, &rm_file, &last, ucred);
+    if (ret < 0) {
+        return ret;
+    }
+
+    ret = access(dir->f_type, dir->f_cred, EXEC, ucred);
+    return ret;
 }
 
 /* Flush the contents and metadata of file f out to disk.
@@ -639,4 +682,74 @@ fs_sync(void) {
     for (int i = 1; i < super->s_nblocks; i++) {
         flush_block(diskaddr(i));
     }
+}
+
+/*
+ * return 0 on success
+ * otherwise < 0
+ */
+int
+file_chmod(const char *path, permission_t perm, const struct Ucred *ucred) {
+    struct File *dir, *file;
+    char last;
+
+    int res;
+    if ((res = walk_path(path, &dir, &file, &last, ucred)) < 0) {
+        return res;
+    }
+
+    if (ucred->cr_uid == 0 || ucred->cr_uid == file->f_cred.fc_uid) {
+        file->f_cred.fc_permission = perm;
+
+        return 0;
+    }
+
+    return -E_ACCES;
+}
+
+
+/*
+ * return 0 on success
+ * otherwise < 0
+ */
+int
+file_chown(const char *path, uid_t uid, const struct Ucred *ucred) {
+    struct File *dir, *file;
+    char last;
+
+    int res;
+    if ((res = walk_path(path, &dir, &file, &last, ucred)) < 0) {
+        return res;
+    }
+
+    if (ucred->cr_uid == 0) {
+        file->f_cred.fc_uid = uid;
+
+        return 0;
+    }
+
+    return -E_ACCES;
+}
+
+/*
+ * return 0 on success
+ * otherwise < 0
+ */
+int
+file_chgrp(const char *path, gid_t gid, const struct Ucred *ucred) {
+    struct File *dir, *file;
+    char last;
+
+    int res;
+    if ((res = walk_path(path, &dir, &file, &last, ucred)) < 0) {
+        return res;
+    }
+
+    if (ucred->cr_uid == 0 || (file->f_cred.fc_uid == ucred->cr_uid && groupmember(gid, ucred))) {
+        file->f_cred.fc_gid = gid;
+
+        return 0;
+    }
+
+    return -E_ACCES;
 }

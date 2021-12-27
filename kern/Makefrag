@@ -123,13 +123,15 @@ KERN_BINFILES :=	user/hello \
 			user/signedoverflow \
 			user/useradd \
 			user/userdel \
-            user/rm \
-            user/mkdir \
-            user/seteuid \
-            user/setuid \
-            user/setgid \
-            user/setegid \
-            user/testfsrwonly \
+			user/rm \
+			user/mkdir \
+			user/seteuid \
+			user/setuid \
+			user/setgid \
+			user/setegid \
+			user/testfsrwonly \
+			user/testchdir \
+			user/testfscreate \
 			user/groupadd \
 			user/groupdel
 

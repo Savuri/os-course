@@ -1,9 +1,9 @@
 #include <inc/lib.h>
 
-static void 
+static void
 NormalizePathOneJump(char cur_dir[MAXPATHLEN], const char *left) {
     if (!strcmp(left, ".")) {
-        cur_dir[MAXPATHLEN-1] = '\0';
+        cur_dir[MAXPATHLEN - 1] = '\0';
         return;
     }
 
@@ -13,7 +13,7 @@ NormalizePathOneJump(char cur_dir[MAXPATHLEN], const char *left) {
             return;
         }
 
-        char* new_ptr = strrchr(cur_dir, '/');
+        char *new_ptr = strrchr(cur_dir, '/');
 
         if (new_ptr == cur_dir) {
             // "/one_dir"
@@ -33,44 +33,43 @@ NormalizePathOneJump(char cur_dir[MAXPATHLEN], const char *left) {
     }
 
     strncpy(ptr, left, MAXPATHLEN - strlen(ptr) - 1);
-    cur_dir[MAXPATHLEN-1] = '\0';
-
+    cur_dir[MAXPATHLEN - 1] = '\0';
 }
 
-void 
+void
 NormalizePath(char cur_dir[MAXPATHLEN], char path[MAXPATHLEN]) {
     if (path[0] == '\0') {
         return;
     }
 
-    cur_dir[MAXPATHLEN-1] = '\0';
-    path[MAXPATHLEN-1] = '\0';
+    cur_dir[MAXPATHLEN - 1] = '\0';
+    path[MAXPATHLEN - 1] = '\0';
 
     if (path[0] == '/') {
         cur_dir[1] = '\0';
         unsigned len = strlen(path);
         for (int i = 0; i < len; ++i) {
-            path[i] = path[i+1];
+            path[i] = path[i + 1];
         }
     }
 
-    if (path[strlen(path)-1] == '/') {
-        path[strlen(path)-1] = '\0';
+    if (path[strlen(path) - 1] == '/') {
+        path[strlen(path) - 1] = '\0';
     } else {
-        path[MAXPATHLEN-1] = '\0';
+        path[MAXPATHLEN - 1] = '\0';
     }
 
     // [left, right)
     char *left = path;
-    char *right = strchr(left+1, '/');
-    
+    char *right = strchr(left + 1, '/');
+
     while (right != NULL) {
         *right = '\0';
         NormalizePathOneJump(cur_dir, left);
         left = right + 1;
-        right = strchr(left+1, '/');
-    } 
+        right = strchr(left + 1, '/');
+    }
 
     NormalizePathOneJump(cur_dir, left);
-    cur_dir[MAXPATHLEN-1] = '\0';
+    cur_dir[MAXPATHLEN - 1] = '\0';
 }

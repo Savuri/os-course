@@ -119,7 +119,6 @@ serve_open(envid_t envid, struct Fsreq_open *req,
 
         return 0;
     }
-    cprintf("HERE\n");
     /* Open the file */
     if (req->req_omode & O_CREAT) {
         if ((res = file_create(path, &f, FTYPE_REG, ucred)) < 0) {
@@ -130,7 +129,7 @@ serve_open(envid_t envid, struct Fsreq_open *req,
         }
     } else {
     try_open:
-        if ((res = file_open(path, &f, ucred)) < 0) {
+        if ((res = file_open(path, &f, ucred, req->req_omode & O_ACCMODE)) < 0) {
             if (debug) cprintf("file_open failed: %i", res);
             return res;
         }
@@ -143,7 +142,7 @@ serve_open(envid_t envid, struct Fsreq_open *req,
             return res;
         }
     }
-    if ((res = file_open(path, &f, ucred)) < 0) {
+    if ((res = file_open(path, &f, ucred, req->req_omode & O_ACCMODE)) < 0) {
         if (debug) cprintf("file_open failed: %i", res);
         return res;
     }
@@ -205,6 +204,17 @@ serve_remove(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
     }
 
     return file_remove(req->req_path, ucred);
+}
+
+int
+serve_accessdir(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
+    struct Fsreq_accessdir *req = &ipc->accessdir;
+
+    if (debug) {
+        cprintf("accessdir %08x %s\n", envid, req->req_path);
+    }
+
+    return accessdir(req->req_path, ucred);
 }
 
 /* Read at most ipc->read.req_n bytes from the current seek position
@@ -297,9 +307,45 @@ serve_flush(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
  * Huge hammer. Without access. User have not declaration
  */
 int
-serve_sync(envid_t envid, union Fsipc *req, const struct Ucred *ucred) {
+serve_sync(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
     fs_sync();
     return 0;
+}
+
+/*
+ * this function is SET permission on file.
+ * ret < 0 - error
+ * ret = 0 - ok
+ */
+int
+serve_chmod(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
+    struct Fsreq_chmod *req = &ipc->chmod;
+
+    return file_chmod(req->req_path, req->req_perm, ucred);
+}
+
+/*
+ * this function is SET owner(req_uid) of file.
+ * ret < 0 - error
+ * ret = 0 - ok
+ */
+int
+serve_chown(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
+    struct Fsreq_chown *req = &ipc->chown;
+
+    return file_chown(req->req_path, req->req_uid, ucred);
+}
+
+/*
+ * this function is SET group(req_gid) of file.
+ * ret < 0 - error
+ * ret = 0 - ok
+ */
+int
+serve_chgrp(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
+    struct Fsreq_chgrp *req = &ipc->chgrp;
+
+    return file_chgrp(req->req_path, req->req_gid, ucred);
 }
 
 typedef int (*fshandler)(envid_t envid, union Fsipc *req, const struct Ucred *ucred);
@@ -313,7 +359,11 @@ fshandler handlers[] = {
         [FSREQ_WRITE] = serve_write,
         [FSREQ_SET_SIZE] = serve_set_size,
         [FSREQ_SYNC] = serve_sync,
-        [FSREQ_REMOVE] = serve_remove};
+        [FSREQ_REMOVE] = serve_remove,
+        [FSREQ_CHMOD] = serve_chmod,
+        [FSREQ_CHOWN] = serve_chown,
+        [FSREQ_CHGRP] = serve_chgrp,
+        [FSREQ_ACCESSDIR] = serve_accessdir};
 #define NHANDLERS (sizeof(handlers) / sizeof(handlers[0]))
 
 void
