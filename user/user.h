@@ -6,6 +6,7 @@
 #define PASSLEN_MAX    64
 #define UID_MAX        1024
 #define NBUFSIZ        1024
+#define NUSERSINGROUP_MAX 30
 
 static gid_t readgid();
 static uid_t readuid();
