@@ -53,6 +53,12 @@ typedef int bool;
 #define MAX_DIR_ENTS  128
 #define DISKMAP       0x10000000
 
+const char user[] = "fs/load/home/user";
+const char qwer[] = "fs/load/home/qwer";
+const char etc[] = "fs/load/etc";
+const char shadow[] = "fs/load/etc/shadow";
+
+
 struct Dir {
     struct File *f;
     struct File *ents;
@@ -208,12 +214,29 @@ writefile(struct Dir *dir, const char *name) {
         last = name;
 
     f = diradd(dir, FTYPE_REG, last);
-    f->f_cred.fc_uid = 0;
-    f->f_cred.fc_gid = 0;
+    if (!strncmp(qwer, name, sizeof(qwer) - 1)) {
+        f->f_cred.fc_uid = 1001;
+        f->f_cred.fc_gid = 1001;
+    } else if (!strncmp(user, name, sizeof(user) - 1)) {
+        f->f_cred.fc_uid = 1000;
+        f->f_cred.fc_gid = 1000;
+    } else {
+        f->f_cred.fc_uid = 0;
+        f->f_cred.fc_gid = 0;
+    }
 
-    if (*name == 'o') {
-        f->f_cred.fc_permission = S_IRWXU | S_IRWXG | S_IRWXO;
-    } else if (!strcmp(name, "fs/load/read-only")) {
+    if (!strncmp(name, "obj/", 4)) {
+        f->f_cred.fc_permission = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
+    } else if (!strcmp(name, shadow)) {
+        f->f_cred.fc_permission = S_IRUSR | S_IWUSR | S_IRGRP;
+    } else if (!strncmp(name, etc, sizeof(etc) - 1)) {
+        f->f_cred.fc_permission = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+    } else {
+        f->f_cred.fc_permission = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
+    }
+
+    //test
+    if (!strcmp(name, "fs/load/read-only")) {
         f->f_cred.fc_permission = S_IRUSR | S_IRGRP | S_IROTH;
         f->f_cred.fc_uid = 1;
         f->f_cred.fc_gid = 1;
@@ -221,8 +244,6 @@ writefile(struct Dir *dir, const char *name) {
         f->f_cred.fc_permission = S_IWUSR | S_IWGRP | S_IWOTH;
         f->f_cred.fc_uid = 1;
         f->f_cred.fc_gid = 1;
-    } else {
-        f->f_cred.fc_permission = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP /*| S_IROTH     */;
     }
 
     start = alloc(st.st_size);
@@ -293,6 +314,14 @@ writedir(struct Dir *root, const char *full_name) {
     jdir->f_cred.fc_permission = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
     jdir->f_cred.fc_uid = 0;
     jdir->f_cred.fc_gid = 0;
+
+    if (!strncmp(qwer, full_name, sizeof(qwer) - 1)) {
+        jdir->f_cred.fc_uid = 1001;
+        jdir->f_cred.fc_gid = 1001;
+    } else if (!strncmp(user, full_name, sizeof(user) - 1)) {
+        jdir->f_cred.fc_uid = 1000;
+        jdir->f_cred.fc_gid = 1000;
+    }
 
     startdir(jdir, &ldir);
     DIR *dir; // Linux dir
