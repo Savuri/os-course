@@ -57,9 +57,10 @@ userinit() {
     user.u_uid = findfreeuid();
     if (user.u_uid == -1)
         exit();
-    user.u_home[0] = '/';
-    strncpy(user.u_home + 1, user.u_comment,
-            strlen(user.u_comment) > PATHLEN_MAX ? PATHLEN_MAX : strlen(user.u_comment));
+    strncpy(user.u_home, "/home/", 6);
+    user.u_home[6] = 0;
+    strncpy(user.u_home + 6, user.u_comment,
+            strlen(user.u_comment) > (PATHLEN_MAX - 6) ? (PATHLEN_MAX - 6) : strlen(user.u_comment));
     user.u_primgrp = user.u_uid;
     strncpy(user.u_shell, "/sh", 3);
     user.u_shell[3] = 0;
@@ -71,7 +72,7 @@ userinit() {
  */
 void
 useradd() {
-    for (int i = 0; i < 256; i++) {
+    /*for (int i = 0; i < 256; i++) {
         if (!flag[i]) continue;
         switch (i) {
         case 'D':
@@ -79,11 +80,12 @@ useradd() {
             break;
         default:;
         }
-    }
+    }*/
     int fd = open("/etc/passwd", O_WRONLY | O_CREAT | O_APPEND);
     fprintf(fd, "%s:%s:%d:%d::%s:%s\n", user.u_comment, user.u_password, user.u_uid,
             user.u_primgrp, user.u_home, user.u_shell);
     int r;
+    printf("home = %s!\n", user.u_home);
     const char* args[3] = {"mkdir", user.u_home, NULL};
     r = spawn(args[0], args);
     if (r >= 0)
@@ -92,7 +94,7 @@ useradd() {
 
 void
 usage() {
-    printf("usage:useradd [-D] [-g GROUP] [-b HOMEPATH] [-s SHELLPATH] [-p PASSWORD] [LOGIN]\n");
+    printf("usage:useradd [-g GROUP] [-b HOMEPATH] [-s SHELLPATH] [-p PASSWORD] LOGIN\n");
     exit();
 }
 
@@ -184,7 +186,6 @@ umain(int argc, char** argv) {
     while ((i = argnext(&args)) >= 0) {
         switch (i) {
         case 'p':
-        case 'D':
         case 'g':
         case 'b':
         case 's':

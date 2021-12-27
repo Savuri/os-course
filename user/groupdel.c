@@ -56,5 +56,5 @@ umain(int argc, char** argv) {
     if(s > 0 && s < 1024)
         groupdel(argv[1]);
     else
-        printf("GID should be > 0 and < 1024");
+        printf("GID should be > 0 and < 1024\n");
 }

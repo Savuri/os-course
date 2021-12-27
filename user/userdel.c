@@ -14,7 +14,7 @@ gethome(char home[]) {
         if (buf[i] == ':')
             cnt++;
     i++;
-    int j = 0;
+    int j = 1;
     for (; buf[i] != ':'; i++, j++)
         home[j] = buf[i];
     home[j] = 0;
@@ -32,8 +32,10 @@ isdeluser(char* name) {
         return 0;
     if (r) {
         char home[PATHLEN_MAX];
+        home[0] = '/';
         gethome(home);
         const char* argv[3] = {"rm", home, NULL};
+        printf("home = %s!\n", argv[1]);
         int r = spawn("rm", argv);
         if (r >= 0)
             wait(r);

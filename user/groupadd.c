@@ -40,7 +40,7 @@ umain(int argc, char** argv) {
     }
     int s = (int)strtol(argv[1], NULL, 10);
     if(s <= 0 || s >= 1024) {
-        printf("GID should be > 0 and < 1024");
+        printf("GID should be > 0 and < 1024\n");
         return;
     }
     int res = isgroupexists((gid_t)strtol(argv[1], NULL, 10));
