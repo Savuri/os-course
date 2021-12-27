@@ -241,7 +241,7 @@ writefile(struct Dir *dir, const char *name) {
     } else if (!strncmp(name, etc, sizeof(etc) - 1)) {
         f->f_cred.fc_permission = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
     } else {
-        f->f_cred.fc_permission = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP /*| S_IROTH     */;
+        f->f_cred.fc_permission = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
     }
 
     start = alloc(st.st_size);
