@@ -67,6 +67,33 @@ userinit() {
     user.u_password[0] = 0;
 }
 
+void
+itoa(int i, char *string) {
+	int power = 0, j = 0;
+ 
+	j = i;
+	for (power = 1; j>10; j /= 10)
+		power *= 10;
+ 
+	for (; power>0; power /= 10)
+	{
+		*string++ = '0' + i / power;
+		i %= power;
+	}
+	*string = 0;
+}
+
+void
+makearg(char* giduid, uid_t uid, gid_t gid) {
+    itoa(gid, giduid);
+    int i = 0;
+    while(giduid[i])
+        i++;
+    giduid[i] = ':';
+    i++;
+    itoa(uid, giduid + i);
+}
+
 /*
  * write or update userinfo to /etc/passwd
  */
@@ -84,11 +111,29 @@ useradd() {
     int fd = open("/etc/passwd", O_WRONLY | O_CREAT | O_APPEND);
     fprintf(fd, "%s:%s:%d:%d::%s:%s\n", user.u_comment, user.u_password, user.u_uid,
             user.u_primgrp, user.u_home, user.u_shell);
+    close(fd);
     int r;
-    printf("home = %s!\n", user.u_home);
-    const char* args[3] = {"mkdir", user.u_home, NULL};
-    r = spawn(args[0], args);
+    r = spawnl("/mkdir", "/mkdir", user.u_home, NULL);
     if (r >= 0)
+        wait(r);
+    char giduid[10];
+    makearg(giduid, user.u_uid, user.u_primgrp);
+    char uidarg[4];
+    itoa(user.u_uid, uidarg);
+    r = spawnl("/chown", "/chown", uidarg, user.u_home, NULL);
+    if(r < 0)
+        printf("err\n");
+    if(r >= 0)
+        wait(r);
+    int s = 0;
+    while(giduid[s] != ':'){
+        s++;
+    }
+    giduid[s] = 0;
+    r = spawnl("/groupmod", "/groupmod", giduid, giduid + s + 1, NULL);
+    if(r < 0)
+        printf("err\n");
+    if(r >= 0)
         wait(r);
 }
 
@@ -153,7 +198,7 @@ fillargs(int argc, char** argv) {
             if (res == 'g') {
                 gid_t gid = (gid_t)strtol(argv[i + 1], NULL, 10);
                 if (gid > 0 && gid < UID_MAX)
-                    user.u_primgrp = user.u_uid;
+                    user.u_primgrp = gid;
             }
         }
     }

@@ -16,6 +16,7 @@ readuid() {
     for (; user_file_buf[i] != ':'; i++)
         ;
     user_file_buf[i] = 0;
+    printf("%s\n", user_file_buf + l - 1);
     return (uid_t)(strtol(user_file_buf + l - 1, NULL, 10));
 }
 
