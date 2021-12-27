@@ -128,7 +128,7 @@ useradd() {
         s++;
     }
     giduid[s] = 0;
-    r = spawnl("groupmod", "/groupmod", giduid + s + 1, giduid, NULL);
+    r = spawnl("groupmod", "/groupmod", giduid, giduid + s + 1, NULL);
     if(r >= 0)
         wait(r);
 }

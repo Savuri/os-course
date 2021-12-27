@@ -31,7 +31,6 @@ readgid() {
 
 int
 isuserexist(uid_t uid) {
-    printf("uid=%d!\n", uid);
     int fd = open("/etc/passwd", O_RDONLY);
     if (fd < 0)
         return 0;
