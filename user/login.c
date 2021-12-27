@@ -180,11 +180,7 @@ umain(int argc, char *argv[]) {
     sys_setgid(passwd.gid);
     /* change uid last, so we have privileges to set up everything */
     sys_setuid(passwd.uid);
-    /*res = chdir(passwd.homepath);
-    if (res < 0) {
-        printf("login: cd %s: %i\n", passwd.homepath, res);
-        return;
-    }*/
+    sys_setenvcurpath(passwd.homepath);    
     res = spawnl(passwd.shell, passwd.shell, (char *)0);
     if (res < 0) {
         printf("login: spawn shell: %i\n", res);
