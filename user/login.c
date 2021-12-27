@@ -80,13 +80,15 @@ authcheck(char login[], char password[], passwd_t *passwd) {
     }
     for (;;) {
         res = getline(f, nbuf, NBUFSIZ);
-        if (res <= 0)
+        if (res == 0) {
+            res = -2;
             break;
+        }
         res = parseline(passwd, nbuf);
         if (res < 0)
             break;
         if (!strcmp(login, passwd->name)) {
-            res = strcmp(password, passwd->password) ? -1 : 0;
+            res = strcmp(password, passwd->password) ? -1 : 1;
             break;
         }
     }
@@ -96,7 +98,7 @@ authcheck(char login[], char password[], passwd_t *passwd) {
 
 void
 getloginname(char *nbuf) {
-    static char *p;
+    char *p;
     int ch;
 
     for (;;) {
@@ -170,7 +172,7 @@ umain(int argc, char *argv[]) {
         getloginname(username);
         getpassword(password);
         res = authcheck(username, password, &passwd);
-        if (res >= 0)
+        if (res > 0)
             break;
         // sleep(5); /* TODO carefully calculate sleep time*/
         printf("\nLogin failed.\n");
@@ -180,7 +182,11 @@ umain(int argc, char *argv[]) {
     sys_setgid(passwd.gid);
     /* change uid last, so we have privileges to set up everything */
     sys_setuid(passwd.uid);
-    sys_setenvcurpath(passwd.homepath);    
+    res = chdir(passwd.homepath);
+    if (res < 0) {
+        printf("Can't change dir to %s: %i\n", passwd.homepath, res);
+        return;
+    }
     res = spawnl(passwd.shell, passwd.shell, (char *)0);
     if (res < 0) {
         printf("login: spawn shell: %i\n", res);
