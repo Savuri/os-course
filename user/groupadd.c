@@ -11,7 +11,7 @@ usage() {
 }
 
 gid_t
-readgid() {
+readgids() {
     int i = 0;
     for (; buf[i] != ':'; i++)
         ;
@@ -20,12 +20,12 @@ readgid() {
 }
 
 int
-isgroupexist(gid_t gid) {
+isgroupexists(gid_t gid) {
     int fd = open("/etc/group", O_RDONLY);
     if(fd < 0)
         return 0;
     while(getline(fd, buf, NBUFSIZ)) {
-        if(gid == readgid())
+        if(gid == readgids())
             return 1;
     }
     close(fd);
@@ -43,9 +43,8 @@ umain(int argc, char** argv) {
         printf("GID should be > 0 and < 1024");
         return;
     }
-    int res = isgroupexist((gid_t)strtol(argv[1], NULL, 10));
+    int res = isgroupexists((gid_t)strtol(argv[1], NULL, 10));
     int fd = open("/etc/group", O_WRONLY | O_CREAT | O_APPEND);
-    printf("fd = %d\n", fd);
     if(!res)
         fprintf(fd, "%s:\n", argv[1]);
     else
