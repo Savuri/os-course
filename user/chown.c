@@ -46,7 +46,7 @@ umain(int argc, char** argv) {
         printf("Bad chown\n");
         exit();
     }
-    if (delim == -1)
+    if (delim > 0)
         if (chgrp(argv[2], (gid_t)(strtol(argv[1] + delim + 1, NULL, 10))))
             printf("Bad chgrp\n");
 }
