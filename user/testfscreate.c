@@ -30,10 +30,20 @@ prepare() {
         return -1;
     }
 
-    chown(MY_TMP_DIR, 1);
-    chgrp(MY_TMP_DIR, 1);
+    if (chown(MY_TMP_DIR, 1000)) {
+        cprintf("fail to change owner of %s\n", MY_TMP_DIR);
+        return -1;
+    }
 
-    chdir(MY_TMP_DIR);
+    if (chgrp(MY_TMP_DIR, 1000)) {
+        cprintf("fail to change group of %s\n", MY_TMP_DIR);
+        return -1;
+    }
+
+    if (chdir(MY_TMP_DIR)) {
+        cprintf("fail to change current dir on %s\n", MY_TMP_DIR);
+        return -1;
+    }
 
     return 0;
 }
@@ -47,160 +57,79 @@ finish() {
 }
 
 static void
-create_and_remove(const char *who, char test_status[TEST_STATUS_SIZE]) {
-    static int i = 0;
-    i %= TEST_STATUS_SIZE;
-
-    if (!open(who, O_CREAT)) {
-        test_status[i] = SUCCESS;
-        cprintf("!!!create file success\n\n");
+create_and_remove(const char *who) {
+    int res;
+    if (!(res = open(who, O_CREAT))) {
+        cprintf("%s: create file success || %i\n", who, res);
     } else {
-        test_status[i] = ERROR;
+        cprintf("%s: create file fail || %i\n", who, res);
     }
-    ++i;
 
-    if (!remove(who)) {
-        test_status[i] = SUCCESS;
+    if (!(res = remove(who))) {
+        cprintf("%s: remove file success || %i\n", who, res);
     } else {
-        test_status[i] = ERROR;
+        cprintf("%s: remove file fail || %i\n", who, res);
     }
-    ++i;
 
-    if (!open(who, O_MKDIR)) {
-        test_status[i] = SUCCESS;
-        cprintf("!!!create dir success\n\n");
+    if (!(res = open(who, O_MKDIR))) {
+        cprintf("%s: create dir success || %i\n", who, res);
     } else {
-        test_status[i] = ERROR;
+        cprintf("%s: create dir fail || %i\n", who, res);
     }
-    ++i;
 
-    if (!remove(who)) {
-        test_status[i] = SUCCESS;
+    if (!(res = remove(who))) {
+        cprintf("%s: remove dir success || %i\n", who, res);
     } else {
-        test_status[i] = ERROR;
-    }
-}
-
-static void
-make_expected_status(char status[TEST_STATUS_SIZE], permission_t perm) {
-    memset(status, ERROR, TEST_STATUS_SIZE);
-
-    if (perm & 1) {
-        memset(status + 8, SUCCESS, 4);
-    }
-    if (perm & 0b1000) {
-        memset(status + 4, SUCCESS, 4);
-    }
-    if (perm & 0b1000000) {
-        memset(status, SUCCESS, 4);
-    }
-}
-
-static void
-compare(const char provided[TEST_STATUS_SIZE],
-        const char expected[TEST_STATUS_SIZE],
-        permission_t permision) {
-    for (int i = 0; i < TEST_STATUS_SIZE; ++i) {
-        if (provided[i] == expected[i]) {
-            continue;
-        }
-
-        switch (i / 4) {
-        case 0:
-            cprintf("Owner fail: ");
-            break;
-        case 1:
-            cprintf("Group fail: ");
-            break;
-        case 2:
-            cprintf("Other fail: ");
-            break;
-        }
-
-        switch (i % 4) {
-        case 0:
-            cprintf("file create\n");
-            break;
-        case 1:
-            cprintf("file remove\n");
-            break;
-        case 2:
-            cprintf("dir create\n");
-            break;
-        case 3:
-            cprintf("dir remove\n");
-            break;
-        }
+        cprintf("%s: remove dir fail || %i\n", who, res);
     }
 }
 
 static void
 set_creds(const char *who) {
     if (!strcmp(who, "owner")) {
-        sys_seteuid(1);
+        sys_seteuid(1000);
     } else if (!strcmp(who, "group")) {
-        sys_seteuid(2);
-        sys_setegid(1);
+        sys_seteuid(1001);
+        sys_setegid(1000);
     } else if (!strcmp(who, "other")) {
-        sys_seteuid(2);
-        sys_setegid(2);
+        sys_seteuid(1001);
+        sys_setegid(1001);
     } else {
         cprintf("fail to set creds\n");
     }
 }
 
 static void
-test(const char *who, char test_status[TEST_STATUS_SIZE]) {
-    int p[2];
-    if (pipe(p) < 0) {
-        cprintf("pipe fail: %s\n", who);
-        return;
-    }
-
-    int pid = fork();
+test(const char *who) {
+    envid_t pid = fork();
     if (!pid) {
-        sys_setenvcurpath("/");
-        close(p[0]);
+        sys_setenvcurpath(MY_TMP_DIR);
         set_creds(who);
-        create_and_remove(who, test_status);
-        write(p[1], test_status, TEST_STATUS_SIZE);
-        close(p[1]);
+        create_and_remove(who);
         exit();
     }
-    close(p[1]);
-    read(p[0], test_status, TEST_STATUS_SIZE);
-    close(p[0]);
     wait(pid);
 }
 
 static void
 run_test(permission_t perm) {
-    char test_status[TEST_STATUS_SIZE];
-
-
-    cprintf("It is owner\n");
-    test("owner", test_status);
-    cprintf("It is group\n");
-    test("group", test_status);
-    cprintf("It is other\n");
-    test("other", test_status);
-
-    char expected_status[TEST_STATUS_SIZE];
-    make_expected_status(expected_status, perm);
-
-    compare(test_status, expected_status, perm);
+    cprintf("\n");
+    test("owner");
+    cprintf("\n");
+    test("group");
+    cprintf("\n");
+    test("other");
 }
 
 void
 umain(int argc, char **argv) {
-    int res;
-
+    cprintf("Prepare for the test\n");
     if (prepare()) {
         finish();
         return;
     }
 
-    if ((res = chmod(MY_TMP_DIR, RWX______)) != 0) {
+    if (chmod(MY_TMP_DIR, RWX______) != 0) {
         cprintf("ERROR: chmod fail before Test1");
         finish();
     }
@@ -208,18 +137,18 @@ umain(int argc, char **argv) {
     run_test(RWX______);
 
 
-    if ((res = chmod(MY_TMP_DIR, ___RWX___)) != 0) {
+    if (chmod(MY_TMP_DIR, ___RWX___) != 0) {
         cprintf("ERROR: chmod fail before Test2");
         finish();
     }
-    cprintf("Test2: ---rwx---\n");
+    cprintf("\n\nTest2: ---rwx---\n");
     run_test(___RWX___);
 
-    if ((res = chmod(MY_TMP_DIR, ______RWX)) != 0) {
+    if (chmod(MY_TMP_DIR, ______RWX) != 0) {
         cprintf("ERROR: chmod fail before Test3");
         finish();
     }
-    cprintf("Test3: ------rwx\n");
+    cprintf("\n\nTest3: ------rwx\n");
     run_test(______RWX);
 
     finish();
