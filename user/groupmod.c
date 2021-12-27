@@ -56,11 +56,11 @@ umain(int argc, char** argv) {
         usage();
     gid = argv[1];
     uid = argv[2];
-    if(strtol(uid, NULL, 10) < 1024 && strtol(uid, NULL, 10) > 0){
+    if(strtol(uid, NULL, 10) >= 1024 || strtol(uid, NULL, 10) <= 0){
         printf("UID should be > 0 and < 1024\n");
         exit();
     }
-    if(strtol(gid, NULL, 10) > 0 && strtol(gid, NULL, 10) < 1024){
+    if(strtol(gid, NULL, 10) <= 0 || strtol(gid, NULL, 10) >= 1024){
         printf("GID should be > 0 and < 1024\n");
         exit();
     }
