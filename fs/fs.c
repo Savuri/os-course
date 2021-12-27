@@ -466,10 +466,8 @@ file_open(const char *path, struct File **pf, const struct Ucred *ucred, int mod
         acc_mode = WRITE;
     } else if (mode == O_RDWR) {
         acc_mode = READ | WRITE;
-    }
-
-    if (acc_mode == 0) {
-        panic("Open without any read, write flag\n");
+    } else if (mode == O_EXEC) {
+        acc_mode = EXEC;
     }
 
     if ((res = access((*pf)->f_type, (*pf)->f_cred, acc_mode, ucred)) < 0) {

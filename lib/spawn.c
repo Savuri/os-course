@@ -78,7 +78,7 @@ spawn(const char *prog, const char **argv) {
 
     // TODO Properly load ELF and check errors
 
-    int fd = open(prog, O_RDONLY);
+    int fd = open(prog, O_EXEC);
     if (fd < 0) return fd;
 
     /* Read elf header */
