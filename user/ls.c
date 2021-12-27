@@ -94,9 +94,11 @@ umain(int argc, char **argv) {
             usage();
         }
 
-    if (argc == 1)
-        ls("/", "");
-    else {
+    if (argc == 1) {
+        char cur_dir[MAXPATHLEN];
+        sys_getenvcurpath(cur_dir, 0);
+        ls(cur_dir, "");
+    } else {
         for (i = 1; i < argc; i++)
             ls(argv[i], argv[i]);
     }
