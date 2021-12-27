@@ -3,7 +3,7 @@
 static void
 test_chdir(const char *dir, const char *expected) {
     chdir(dir);
-    
+
     char cur_dir[MAXPATHLEN];
     sys_getenvcurpath(cur_dir, 0);
     if (strcmp(cur_dir, expected)) {
@@ -25,13 +25,13 @@ umain(int argc, char **argv) {
     }
 
     test_chdir("/etc", "/etc");
-    test_chdir("/","/");
+    test_chdir("/", "/");
     test_chdir("/etc/", "/etc");
-    test_chdir("/","/");
+    test_chdir("/", "/");
     test_chdir("etc/", "/etc");
-    test_chdir("/","/");
+    test_chdir("/", "/");
     test_chdir("etc", "/etc");
 
-    test_chdir("/","/");
-    test_chdir("/1/2/3/4","/");
+    test_chdir("/", "/");
+    test_chdir("/1/2/3/4", "/");
 }

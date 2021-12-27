@@ -21,13 +21,13 @@ prepare() {
     if (strcmp(cur_dir, "/")) {
         cprintf("ERROR: unexpected current dir\n");
         cprintf("Expected: /\nProvided: %s\n", cur_dir);
-        return - 1;
+        return -1;
     }
 
     int ret = open(MY_TMP_DIR, O_MKDIR);
     if (ret < 0) {
         cprintf("ERROR: fail to create %s\n", MY_TMP_DIR);
-        return - 1;
+        return -1;
     }
 
     chown(MY_TMP_DIR, 1);
@@ -64,7 +64,7 @@ create_and_remove(const char *who, char test_status[TEST_STATUS_SIZE]) {
     } else {
         test_status[i] = ERROR;
     }
-    ++i;  
+    ++i;
 
     if (!open(who, O_MKDIR)) {
         test_status[i] = SUCCESS;
@@ -72,8 +72,8 @@ create_and_remove(const char *who, char test_status[TEST_STATUS_SIZE]) {
     } else {
         test_status[i] = ERROR;
     }
-    ++i;  
-    
+    ++i;
+
     if (!remove(who)) {
         test_status[i] = SUCCESS;
     } else {
@@ -105,7 +105,7 @@ compare(const char provided[TEST_STATUS_SIZE],
             continue;
         }
 
-        switch (i/4) {
+        switch (i / 4) {
         case 0:
             cprintf("Owner fail: ");
             break;
@@ -117,7 +117,7 @@ compare(const char provided[TEST_STATUS_SIZE],
             break;
         }
 
-        switch (i%4) {
+        switch (i % 4) {
         case 0:
             cprintf("file create\n");
             break;
@@ -134,13 +134,13 @@ compare(const char provided[TEST_STATUS_SIZE],
     }
 }
 
-static void 
+static void
 set_creds(const char *who) {
     if (!strcmp(who, "owner")) {
         sys_seteuid(1);
     } else if (!strcmp(who, "group")) {
         sys_seteuid(2);
-        sys_setegid(1);    
+        sys_setegid(1);
     } else if (!strcmp(who, "other")) {
         sys_seteuid(2);
         sys_setegid(2);

@@ -349,7 +349,7 @@ walk_path(const char *path, struct File **pdir, struct File **pf, char *lastelem
     char name[MAXNAMELEN];
     struct File *dir, *f;
     int r;
-    
+
     if (!strcmp(path, "/")) {
         if (pdir) {
             *pdir = &super->s_root;
