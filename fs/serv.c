@@ -105,12 +105,6 @@ serve_open(envid_t envid, struct Fsreq_open *req,
     memmove(path, req->req_path, MAXPATHLEN);
     path[MAXPATHLEN - 1] = 0;
 
-    /* Find an open file ID */
-    if ((res = openfile_alloc(&o)) < 0) {
-        if (debug) cprintf("openfile_alloc failed: %i", res);
-        return res;
-    }
-
     /* Create dir */
     if (req->req_omode & O_MKDIR) {
         if ((res = file_create(path, &f, FTYPE_DIR, ucred)) < 0) {
@@ -135,6 +129,10 @@ serve_open(envid_t envid, struct Fsreq_open *req,
         }
     }
 
+    if (f->f_type == FTYPE_DIR && ((req->req_omode & O_WRONLY) || (req->req_omode & O_RDWR))) {
+        return -E_IS_DIR;
+    }
+
     /* Truncate */
     if (req->req_omode & O_TRUNC) {
         if (((res = access(f->f_type, f->f_cred, WRITE, ucred)) < 0) || (res = file_set_size(f, 0)) < 0) {
@@ -144,6 +142,11 @@ serve_open(envid_t envid, struct Fsreq_open *req,
     }
     if ((res = file_open(path, &f, ucred, req->req_omode & O_ACCMODE)) < 0) {
         if (debug) cprintf("file_open failed: %i", res);
+        return res;
+    }
+    /* Find an open file ID */
+    if ((res = openfile_alloc(&o)) < 0) {
+        if (debug) cprintf("openfile_alloc failed: %i", res);
         return res;
     }
 

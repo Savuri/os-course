@@ -33,6 +33,7 @@ enum {
     E_PERM = 20,      /* Operation not permitted */
     E_NOT_EMPTY = 21, /* FS: Dir is not empty */
     E_ACCES = 22,
+    E_IS_DIR = 23, /* open for write directory*/
     MAXERROR
 };
 
