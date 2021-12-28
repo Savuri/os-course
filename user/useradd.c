@@ -270,7 +270,7 @@ namecheck(int argc, char** argv) {
         int i;
         for(i = 0; buf[i] != ':'; i++)
             ;
-        if(!strncmp(argv[argc - 1], buf, i)){
+        if(!strncmp(argv[argc - 1], buf, i) && strlen(argv[argc - 1]) == i){
             printf("Username is already in user\n");
             exit();
         }
