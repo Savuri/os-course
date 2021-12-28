@@ -46,6 +46,22 @@ get_unix_perm(permission_t x, unsigned char *res) {
         }
     }
 
+    if (x & S_ISUID) {
+        if (res[2] == 'x') {
+            res[2] = 's';
+        } else {
+            res[2] = 'S';
+        }
+    }
+
+    if (x & S_ISGID) {
+        if (res[5] == 'x') {
+            res[5] = 's';
+        } else {
+            res[5] = 'S';
+        }
+    }
+
     res[9] = '\0';
 }
 

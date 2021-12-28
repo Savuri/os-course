@@ -637,6 +637,36 @@ sys_setenvcurpath(const char* buf) {
     return 0;
 }
 
+/*
+ * FS or root can call this checks in FS.
+ * If setuid(setgid) bit on file is not set then
+ * uid(gid) == effective uid(gid) of process.
+ *
+ * The saved set-user-ID and saved set-group-ID are designed for use with set-user-ID
+ * and set-group-ID programs. When a program is executed, the following steps
+ * (among many others) occur:
+ * 1. If the set-user-ID (set-group-ID) permission bit is enabled on the executable,
+ * then the effective user (group) ID of the process is made the same as the owner
+ * of the executable. If the set-user-ID (set-group-ID) bit is not set, then no change
+ * is made to the effective user (group) ID of the process.
+ * 2. The values for the saved set-user-ID and saved set-group-ID are copied from
+ * the corresponding effective IDs. This copying occurs regardless of whether the
+ * set-user-ID or set-group-ID bit is set on the file being executed.
+ */
+int
+sys_fssetcred(envid_t envid, uid_t uid, gid_t gid) {
+    if (curenv->env_ucred.cr_ruid != 0 || curenv->env_ucred.cr_rgid != 0) {
+        return -E_INVAL;
+    }
+
+    envs[ENVX(envid)].env_ucred.cr_uid = uid;
+    envs[ENVX(envid)].env_ucred.cr_gid = gid;
+    envs[ENVX(envid)].env_ucred.cr_svuid = envs[ENVX(envid)].env_ucred.cr_uid;
+    envs[ENVX(envid)].env_ucred.cr_svgid = envs[ENVX(envid)].env_ucred.cr_gid;
+
+    return 0;
+}
+
 
 /* Dispatches to the correct kernel function, passing the arguments. */
 uintptr_t
@@ -703,8 +733,9 @@ syscall(uintptr_t syscallno, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t
         return sys_getenvcurpath((char*)a1, (envid_t)a2);
     case SYS_setenvcurpath:
         return sys_setenvcurpath((const char*)a1);
-    default:
-        cprintf("Unexpected in syscall\n");
+    case SYS_fssetcred:
+        return sys_fssetcred(a1, a2, a3);
+    default : cprintf("Unexpected in syscall\n");
     }
 
     return -E_NO_SYS;

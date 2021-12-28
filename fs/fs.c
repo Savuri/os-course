@@ -643,16 +643,18 @@ file_remove(const char *path, const struct Ucred *ucred) {
  */
 int
 accessdir(const char *path, const struct Ucred *ucred) {
-    struct File *rm_file, *dir;
-    char last;
+    struct File *last_file, *dir;
 
-    int ret = walk_path(path, &dir, &rm_file, &last, ucred);
+    int ret = walk_path(path, &dir, &last_file, NULL, ucred);
     if (ret < 0) {
         return ret;
     }
 
-    ret = access(dir->f_type, dir->f_cred, EXEC, ucred);
-    return ret;
+    if (last_file->f_type != FTYPE_DIR) {
+        return -E_BAD_PATH;
+    }
+
+    return access(dir->f_type, dir->f_cred, EXEC, ucred);
 }
 
 /* Flush the contents and metadata of file f out to disk.
