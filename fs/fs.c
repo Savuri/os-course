@@ -635,6 +635,8 @@ file_remove(const char *path, const struct Ucred *ucred) {
             }
         }
     }
+
+    return 0;
 }
 
 /*
@@ -655,7 +657,7 @@ accessdir(const char *path, const struct Ucred *ucred) {
         return -E_BAD_PATH;
     }
 
-    return access(dir->f_type, dir->f_cred, EXEC, ucred);
+    return access(last_file->f_type, last_file->f_cred, EXEC, ucred);
 }
 
 /* Flush the contents and metadata of file f out to disk.
