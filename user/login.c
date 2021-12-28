@@ -106,13 +106,22 @@ getloginname(char *nbuf) {
         p = nbuf;
         for (;;) {
             ch = getchar();
-            if (ch == '\n')
+            if (ch == '\n' || ch == '\r')
                 break; /* OK */
             if (ch <= 0)
                 exit(); /* EOF -> restart login */
-            if (p < nbuf + COMMENTLEN_MAX) {
+
+            if ((ch == '\b' || ch == '\x7F')) {
+                if (p != nbuf) {
+                    cputchar('\b');
+                    cputchar(' ');
+                    cputchar('\b');
+                    p--;
+                }
+            } else if (p < nbuf + COMMENTLEN_MAX) {
                 *p = ch;
                 p++;
+                cputchar(ch);
             }
         }
         if (p > nbuf) {
@@ -139,7 +148,7 @@ getpassword(char *nbuf) {
      */
     for (;;) {
         ch = getchar();
-        if (ch == '\n')
+        if (ch == '\n' || ch == '\r')
             break; /* OK */
         if (ch <= 0)
             exit(); /* EOF -> restart login */
