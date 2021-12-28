@@ -3,8 +3,8 @@
 #include <inc/crypt.h>
 #include <inc/base64.h>
 
-#define ETC_SHADOW "etc/shadow"
-#define ETC_PASSWD "etc/passwd"
+#define ETC_SHADOW "/etc/shadow"
+#define ETC_PASSWD "/etc/passwd"
 
 typedef struct passwd_t {
     char *name;
