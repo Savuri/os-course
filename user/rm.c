@@ -3,7 +3,7 @@
 void
 umain(int argc, char *argv[]) {
     if (argc != 2) {
-        cprintf("Usage: rm FILE_NAME\n");
+        cprintf("Usage: rm PATH\n");
         exit();
     }
 
