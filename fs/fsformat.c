@@ -57,6 +57,8 @@ const char user[] = "fs/load/home/user";
 const char qwer[] = "fs/load/home/qwer";
 const char etc[] = "fs/load/etc";
 const char shadow[] = "fs/load/etc/shadow";
+const char root[] = "fs/load/root";
+const char login[] = "obj/user/login";
 
 
 struct Dir {
@@ -225,12 +227,16 @@ writefile(struct Dir *dir, const char *name) {
         f->f_cred.fc_gid = 0;
     }
 
-    if (!strncmp(name, "obj/", 4)) {
+    if (!strcmp(name, login)) {
+        f->f_cred.fc_permission = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH | S_ISUID;
+    } else if (!strncmp(name, "obj/", 4)) {
         f->f_cred.fc_permission = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
     } else if (!strcmp(name, shadow)) {
         f->f_cred.fc_permission = S_IRUSR | S_IWUSR | S_IRGRP;
     } else if (!strncmp(name, etc, sizeof(etc) - 1)) {
         f->f_cred.fc_permission = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+    } else if (!strncmp(name, root, sizeof(root) - 1)) {
+        f->f_cred.fc_permission = S_IRUSR | S_IWUSR;
     } else {
         f->f_cred.fc_permission = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
     }
