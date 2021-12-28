@@ -2,6 +2,7 @@
 #include <user/user.h>
 #include <inc/string.h>
 #include <inc/crypt.h>
+#include <inc/base64.h>
 
 int flag[256];
 int uids[UID_MAX];
@@ -146,7 +147,9 @@ writepass(const char* pass) {
     salt[i] = 0;
     char hash[20] = {0};
     pkcs5_pbkdf2((uint8_t *)pass, strlen(pass), (const uint8_t *)salt, 20, (uint8_t *)hash, 20, 1024);
-    fprintf(fd, "%s:$0$:%s$%s:\n", user.u_comment, salt, hash);
+    char b64hash[33];
+    bintob64(b64hash, hash, strlen(hash));
+    fprintf(fd, "%s:$0$:%s$%s:\n", user.u_comment, salt, b64hash);
     close(fd);
 }
 
