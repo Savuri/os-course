@@ -128,6 +128,7 @@ KERN_BINFILES :=	user/hello \
 			user/testfsrwonly \
 			user/testchdir \
 			user/testfscreate \
+			user/test1 \
 			user/groupadd \
 			user/groupdel \
 			user/chmod \

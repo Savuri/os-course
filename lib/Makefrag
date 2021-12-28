@@ -28,7 +28,10 @@ LIB_SRCFILES :=		$(LIB_SRCFILES) \
 			lib/pipe.c \
 			lib/wait.c \
 			lib/uvpt.c \
-			lib/user.c
+			lib/user.c \
+			lib/sha1.c \
+			lib/hmac.c \
+			lib/crypt.c
 
 LIB_SRCFILES :=		$(LIB_SRCFILES) \
 			lib/vsyscall.c
