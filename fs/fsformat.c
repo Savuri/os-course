@@ -57,7 +57,7 @@ const char user[] = "fs/load/home/user";
 const char qwer[] = "fs/load/home/qwer";
 const char etc[] = "fs/load/etc";
 const char shadow[] = "fs/load/etc/shadow";
-const char root[] = "fs/load/root";
+const char root_dir[] = "fs/load/root";
 const char login[] = "obj/user/login";
 
 
@@ -235,7 +235,7 @@ writefile(struct Dir *dir, const char *name) {
         f->f_cred.fc_permission = S_IRUSR | S_IWUSR | S_IRGRP;
     } else if (!strncmp(name, etc, sizeof(etc) - 1)) {
         f->f_cred.fc_permission = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
-    } else if (!strncmp(name, root, sizeof(root) - 1)) {
+    } else if (!strncmp(name, root_dir, sizeof(root_dir) - 1)) {
         f->f_cred.fc_permission = S_IRUSR | S_IWUSR;
     } else {
         f->f_cred.fc_permission = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH;
@@ -327,6 +327,8 @@ writedir(struct Dir *root, const char *full_name) {
     } else if (!strncmp(user, full_name, sizeof(user) - 1)) {
         jdir->f_cred.fc_uid = 1000;
         jdir->f_cred.fc_gid = 1000;
+    } else if (!strncmp(root_dir, full_name, sizeof(root_dir) - 1)) {
+        jdir->f_cred.fc_permission = S_IRWXU;
     }
 
     startdir(jdir, &ldir);
