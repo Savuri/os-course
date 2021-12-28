@@ -99,17 +99,17 @@ userinit() {
 void
 itoa(int i, char *string) {
 	int power = 0, j = 0;
- 
+    int k = 0;
 	j = i;
-	for (power = 1; j>10; j /= 10)
+	for (power = 1; j>=10; j /= 10)
 		power *= 10;
- 
 	for (; power>0; power /= 10)
 	{
-		*string++ = '0' + i / power;
+		string[k] = '0' + i / power;
+        k++;
 		i %= power;
 	}
-	*string = 0;
+	string[k] = 0;
 }
 
 void
@@ -128,26 +128,20 @@ makearg(char* giduid, uid_t uid, gid_t gid) {
  */
 void
 useradd() {
-    /*for (int i = 0; i < 256; i++) {
-        if (!flag[i]) continue;
-        switch (i) {
-        case 'D':
-            // usermod();
-            break;
-        default:;
-        }
-    }*/
     int fd = open("/etc/passwd", O_WRONLY | O_CREAT | O_APPEND);
     fprintf(fd, "%s:%s:%d:%d::%s:%s\n", user.u_comment, user.u_password, user.u_uid,
             user.u_primgrp, user.u_home, user.u_shell);
     close(fd);
     int r;
     r = spawnl("/mkdir", "/mkdir", user.u_home, NULL);
+    if (r < 0) {
+        printf("Incorrect HOMEPATH\n");
+        exit();
+    }
     if (r >= 0)
         wait(r);
     char giduid[10];
     makearg(giduid, user.u_uid, user.u_primgrp);
-    printf("gu = %s!\n", giduid);
     char uidarg[4];
     itoa(user.u_uid, uidarg);
     int s = 0;
@@ -156,13 +150,10 @@ useradd() {
     }
     giduid[s] = 0;
     r = spawnl("/groupmod", "/groupmod", giduid, giduid + s + 1, NULL);
-    if(r < 0)
-        printf("err\n");
     if(r >= 0)
         wait(r);
-    r = spawnl("/chown", "/chown", uidarg, user.u_home, NULL);
-    if(r < 0)
-        printf("err\n");
+    giduid[s] = ':';
+    r = spawnl("/chown", "/chown", giduid, user.u_home, NULL);
     if(r >= 0)
         wait(r);
 }
@@ -201,8 +192,9 @@ fillargs(int argc, char** argv) {
             if (i + 1 == argc || argv[i + 1][0] == '-') return 1;
             if (res == 'u') {
                 uid_t uid = (uid_t)strtol(argv[i + 1], NULL, 10);
-                if (uid > 0 && uid < UID_MAX)
+                if (uid > 0 && uid < UID_MAX){
                     user.u_uid = uid;
+                }
                 else {
                     printf("UID should be > 0 and < %d", UID_MAX);
                     exit();
@@ -235,8 +227,8 @@ fillargs(int argc, char** argv) {
                 gid_t gid = (gid_t)strtol(argv[i + 1], NULL, 10);
                 if (gid > 0 && gid < UID_MAX)
                     user.u_primgrp = gid;
-                if (isgroupexist(gid)){
-                    printf("Gid is already in use\n");
+                else {
+                    printf("GID should be > 0 and < %d", UID_MAX);
                     exit();
                 }
             }
