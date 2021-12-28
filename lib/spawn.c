@@ -103,7 +103,7 @@ spawn(const char *prog, const char **argv) {
     /* Create new child environment */
     if ((int)(res = sys_exofork()) < 0) goto error2;
     envid_t child = res;
-    if ((res =  set_child_cred(res, fd)) < 0) {
+    if ((res = set_child_cred(res, fd)) < 0) {
         cprintf("spawn:suid guid %i", res);
         return res;
     }

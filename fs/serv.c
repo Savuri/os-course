@@ -357,7 +357,7 @@ serve_set_child_cred(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred)
     int r;
 
     if (debug) cprintf("serve_set_child_cred %08x %08x %08x\n",
-                envid, req->req_fileid, req->req_envid);
+                       envid, req->req_fileid, req->req_envid);
 
     if (envs[ENVX(req->req_envid)].env_parent_id != envid) return -E_INVAL;
 
