@@ -4,6 +4,7 @@
 
 int flag[256];
 int uids[UID_MAX];
+int gids[UID_MAX];
 char buf[NBUFSIZ];
 
 user_t user;
@@ -28,6 +29,16 @@ saveuid() {
     uids[(int)strtol(uid, NULL, 10)] = 1;
 }
 
+void
+savegid() {
+    char gid[5];
+    int i;
+    for (i = 0; buf[i] != ':'; i++)
+        gid[i] = buf[i];
+    gid[i] = 0;
+    gids[(int)strtol(gid, NULL, 10)] = 1;
+}
+
 /*
  *  Returns lowest free uid if exists
  */
@@ -41,12 +52,30 @@ findfreeuid() {
         r = getline(fd, buf, NBUFSIZ);
         saveuid();
     } while (r > 0);
-
+    close(fd);
     for (int i = 1; i < UID_MAX; i++)
         if (!uids[i])
             return i;
     printf("No free uids\n");
     return -1; // out of uids
+}
+
+gid_t
+findfreegid() {
+    int r;
+    int fd = open("/etc/group", O_RDONLY);
+    if (fd < 0)
+        return 1;
+    do {
+        r = getline(fd, buf, NBUFSIZ);
+        savegid();
+    } while (r > 0);
+    close(fd);
+    for (int i = 1; i < UID_MAX; i++)
+        if(!gids[i])
+            return i;
+    printf("No free gids\n");
+    return -1;
 }
 
 /*
@@ -61,7 +90,7 @@ userinit() {
     user.u_home[6] = 0;
     strncpy(user.u_home + 6, user.u_comment,
             strlen(user.u_comment) > (PATHLEN_MAX - 6) ? (PATHLEN_MAX - 6) : strlen(user.u_comment));
-    user.u_primgrp = user.u_uid;
+    user.u_primgrp = findfreegid();
     strncpy(user.u_shell, "/sh", 3);
     user.u_shell[3] = 0;
     user.u_password[0] = 0;
@@ -118,6 +147,7 @@ useradd() {
         wait(r);
     char giduid[10];
     makearg(giduid, user.u_uid, user.u_primgrp);
+    printf("gu = %s!\n", giduid);
     char uidarg[4];
     itoa(user.u_uid, uidarg);
     int s = 0;
@@ -164,6 +194,8 @@ int
 fillargs(int argc, char** argv) {
     for (int i = 0; i < argc; i++) {
         if (argv[i][0] == '-') {
+            if(strlen(argv[i]) != 2)
+                usage();
             char res = strpbrk(argv[i], "bpgus");
             if (!res) continue;
             if (i + 1 == argc || argv[i + 1][0] == '-') return 1;
@@ -172,7 +204,11 @@ fillargs(int argc, char** argv) {
                 if (uid > 0 && uid < UID_MAX)
                     user.u_uid = uid;
                 else {
-                    printf("UID should be > 1 and < %d", UID_MAX);
+                    printf("UID should be > 0 and < %d", UID_MAX);
+                    exit();
+                }
+                if (isuserexist(uid)){
+                    printf("Uid is already in use\n");
                     exit();
                 }
             }
@@ -199,6 +235,10 @@ fillargs(int argc, char** argv) {
                 gid_t gid = (gid_t)strtol(argv[i + 1], NULL, 10);
                 if (gid > 0 && gid < UID_MAX)
                     user.u_primgrp = gid;
+                if (isgroupexist(gid)){
+                    printf("Gid is already in use\n");
+                    exit();
+                }
             }
         }
     }
@@ -216,9 +256,29 @@ fillname(int argc, char** argv) {
 }
 
 void
+namecheck(int argc, char** argv) {
+    int r;
+    if(argv[argc-2][0] == '-')
+        usage();
+    int fd = open("/etc/passwd", O_RDONLY);
+    do {
+        r = getline(fd, buf, NBUFSIZ);
+        int i;
+        for(i = 0; buf[i] != ':'; i++)
+            ;
+        if(!strncmp(argv[argc - 1], buf, i)){
+            printf("Username is already in user\n");
+            exit();
+        }
+    } while (r > 0);
+    close(fd);
+}
+
+void
 umain(int argc, char** argv) {
     int i;
     struct Argstate args;
+    namecheck(argc, argv);
     fillname(argc, argv);
     userinit();
     if (fillargs(argc, argv))

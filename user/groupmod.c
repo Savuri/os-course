@@ -57,6 +57,7 @@ umain(int argc, char** argv) {
     gid = argv[1];
     uid = argv[2];
     if(strtol(uid, NULL, 10) >= 1024 || strtol(uid, NULL, 10) <= 0){
+        printf("uid = %s!\n", uid);
         printf("UID should be > 0 and < 1024\n");
         exit();
     }
