@@ -133,19 +133,19 @@ writepass(const char* pass) {
     char salt[20] = {"qqqqqqqqqqqqqqqqqqq\0"};
     int i = 0;
     printf("Enter salt for hash\n");
-    while(1) {
+    while (1) {
         salt[i] = getchar();
-        if(salt[i] == '\n' || salt[i] == '\r')
+        if (salt[i] == '\n' || salt[i] == '\r')
             break;
-        if(salt[i] <= 0)
+        if (salt[i] <= 0)
             break;
         i++;
-        if(i >= 19)
+        if (i >= 19)
             break;
     }
     salt[i] = 0;
     char hash[21] = {0};
-    pkcs5_pbkdf2((uint8_t *)pass, strlen(pass), (const uint8_t *)salt, strlen(salt), (uint8_t *)hash, 20, 1024);
+    pkcs5_pbkdf2((uint8_t*)pass, strlen(pass), (const uint8_t*)salt, strlen(salt), (uint8_t*)hash, 20, 1024);
     char b64hash[33];
     bintob64(b64hash, hash, strlen(hash));
     fprintf(fd, "%s:$0$%s$%s:\n", user.u_comment, salt, b64hash);
@@ -158,7 +158,7 @@ writepass(const char* pass) {
 void
 useradd() {
     int fd = open("/etc/passwd", O_WRONLY | O_CREAT | O_APPEND);
-    if(fd < 0)
+    if (fd < 0)
         exit();
     fprintf(fd, "%s:%s:%d:%d::%s:%s\n", user.u_comment, "x", user.u_uid,
             user.u_primgrp, user.u_home, user.u_shell);
@@ -238,20 +238,17 @@ fillargs(int argc, char** argv) {
                     printf("Uid is already in use\n");
                     exit();
                 }
-            } else
-            if (res == 'p') {
+            } else if (res == 'p') {
                 flag['p'] = 1;
                 int len = strlen(argv[i + 1]) > PASSLEN_MAX ? PASSLEN_MAX : strlen(argv[i + 1]);
                 strncpy(user.u_password, argv[i + 1], len);
                 user.u_password[len] = 0;
-            } else
-            if (res == 's') {
+            } else if (res == 's') {
                 flag['s'] = 1;
                 int len = strlen(argv[i + 1]) > PATHLEN_MAX ? PATHLEN_MAX : strlen(argv[i + 1]);
                 strncpy(user.u_shell, argv[i + 1], len);
                 user.u_shell[len] = 0;
-            } else
-            if (res == 'b') {
+            } else if (res == 'b') {
                 flag['b'] = 1;
                 int len = strlen(argv[i + 1]) > PATHLEN_MAX ? PATHLEN_MAX : strlen(argv[i + 1]);
                 strncpy(user.u_home, argv[i + 1], len);
@@ -260,8 +257,7 @@ fillargs(int argc, char** argv) {
                     printf("Homepath could not be /\n");
                     exit();
                 }
-            } else
-            if (res == 'g') {
+            } else if (res == 'g') {
                 flag['g'] = 1;
                 gid_t gid = (gid_t)strtol(argv[i + 1], NULL, 10);
                 if (gid > 0 && gid < UID_MAX)
@@ -270,8 +266,7 @@ fillargs(int argc, char** argv) {
                     printf("GID should be > 0 and < %d\n", UID_MAX);
                     exit();
                 }
-            }
-            else
+            } else
                 usage();
         }
     }

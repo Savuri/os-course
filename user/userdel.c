@@ -119,7 +119,7 @@ usage() {
 
 void
 umain(int argc, char** argv) {
-    if(!strcmp("root", argv[argc - 1]))
+    if (!strcmp("root", argv[argc - 1]))
         printf("Root can't be deleted:)\n");
     int i;
     struct Argstate args;
