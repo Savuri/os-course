@@ -72,7 +72,7 @@ findfreegid() {
     } while (r > 0);
     close(fd);
     for (int i = 1; i < UID_MAX; i++)
-        if(!gids[i])
+        if (!gids[i])
             return i;
     printf("No free gids\n");
     return -1;
@@ -97,26 +97,25 @@ userinit() {
 }
 
 void
-itoa(int i, char *string) {
-	int power = 0, j = 0;
+itoa(int i, char* string) {
+    int power = 0, j = 0;
     int k = 0;
-	j = i;
-	for (power = 1; j>=10; j /= 10)
-		power *= 10;
-	for (; power>0; power /= 10)
-	{
-		string[k] = '0' + i / power;
+    j = i;
+    for (power = 1; j >= 10; j /= 10)
+        power *= 10;
+    for (; power > 0; power /= 10) {
+        string[k] = '0' + i / power;
         k++;
-		i %= power;
-	}
-	string[k] = 0;
+        i %= power;
+    }
+    string[k] = 0;
 }
 
 void
 makearg(char* giduid, uid_t uid, gid_t gid) {
     itoa(gid, giduid);
     int i = 0;
-    while(giduid[i])
+    while (giduid[i])
         i++;
     giduid[i] = ':';
     i++;
@@ -145,16 +144,16 @@ useradd() {
     char uidarg[4];
     itoa(user.u_uid, uidarg);
     int s = 0;
-    while(giduid[s] != ':'){
+    while (giduid[s] != ':') {
         s++;
     }
     giduid[s] = 0;
     r = spawnl("/groupmod", "/groupmod", giduid, giduid + s + 1, NULL);
-    if(r >= 0)
+    if (r >= 0)
         wait(r);
     giduid[s] = ':';
     r = spawnl("/chown", "/chown", giduid, user.u_home, NULL);
-    if(r >= 0)
+    if (r >= 0)
         wait(r);
 }
 
@@ -185,21 +184,20 @@ int
 fillargs(int argc, char** argv) {
     for (int i = 0; i < argc; i++) {
         if (argv[i][0] == '-') {
-            if(strlen(argv[i]) != 2)
+            if (strlen(argv[i]) != 2)
                 usage();
             char res = strpbrk(argv[i], "bpgus");
             if (!res) continue;
             if (i + 1 == argc || argv[i + 1][0] == '-') return 1;
             if (res == 'u') {
                 uid_t uid = (uid_t)strtol(argv[i + 1], NULL, 10);
-                if (uid > 0 && uid < UID_MAX){
+                if (uid > 0 && uid < UID_MAX) {
                     user.u_uid = uid;
-                }
-                else {
+                } else {
                     printf("UID should be > 0 and < %d", UID_MAX);
                     exit();
                 }
-                if (isuserexist(uid)){
+                if (isuserexist(uid)) {
                     printf("Uid is already in use\n");
                     exit();
                 }
@@ -250,15 +248,15 @@ fillname(int argc, char** argv) {
 void
 namecheck(int argc, char** argv) {
     int r;
-    if(argv[argc-2][0] == '-')
+    if (argv[argc - 2][0] == '-')
         usage();
     int fd = open("/etc/passwd", O_RDONLY);
     do {
         r = getline(fd, buf, NBUFSIZ);
         int i;
-        for(i = 0; buf[i] != ':'; i++)
+        for (i = 0; buf[i] != ':'; i++)
             ;
-        if(!strncmp(argv[argc - 1], buf, i)){
+        if (!strncmp(argv[argc - 1], buf, i)) {
             printf("Username is already in user\n");
             exit();
         }
