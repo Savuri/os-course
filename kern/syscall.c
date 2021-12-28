@@ -98,7 +98,6 @@ sys_exofork(void) {
     env->env_tf = curenv->env_tf;
     env->env_tf.tf_regs.reg_rax = 0;
     env->env_ucred = curenv->env_ucred;
-//    env->env_parent_id = curenv->env_id;
     strncpy(env->current_path, curenv->current_path, MAXPATHLEN);
     return env->env_id;
 }

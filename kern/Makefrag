@@ -132,8 +132,7 @@ KERN_BINFILES :=	user/hello \
 			user/groupdel \
 			user/chmod \
 			user/chown \
-			user/groupmod \
-            user/print_creds
+			user/groupmod
 
 KERN_BINFILES := $(patsubst %, $(OBJDIR)/%, $(KERN_BINFILES))
 endif

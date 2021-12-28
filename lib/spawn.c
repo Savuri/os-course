@@ -9,7 +9,6 @@ static int init_stack(envid_t child, const char **argv, struct Trapframe *tf);
 static int map_segment(envid_t child, uintptr_t va, size_t memsz,
                        int fd, size_t filesz, off_t fileoffset, int perm);
 static int copy_shared_region(void *start, void *end, void *arg);
-
 /* Spawn a child process from a program image loaded from the file system.
  * prog: the pathname of the program to run.
  * argv: pointer to null-terminated array of pointers to strings,
@@ -106,6 +105,7 @@ spawn(const char *prog, const char **argv) {
     envid_t child = res;
     if ((res =  set_child_cred(res, fd)) < 0) {
         cprintf("spawn:suid guid %i", res);
+        return res;
     }
     /* Set up trap frame, including initial stack. */
     struct Trapframe child_tf = envs[ENVX(child)].env_tf;

@@ -52,7 +52,6 @@ USERAPPS :=		$(OBJDIR)/user/init \
 			$(OBJDIR)/user/chmod \
 			$(OBJDIR)/user/chown \
 			$(OBJDIR)/user/groupmod \
-			$(OBJDIR)/user/print_creds \
 
 
 FSIMGFILES := $(FSIMGTXTFILES) $(USERAPPS) $(FSIMGDIRS)
