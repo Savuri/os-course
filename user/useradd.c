@@ -1,6 +1,7 @@
 #include <inc/lib.h>
 #include <user/user.h>
 #include <inc/string.h>
+#include <inc/crypt.h>
 
 int flag[256];
 int uids[UID_MAX];
@@ -123,15 +124,26 @@ makearg(char* giduid, uid_t uid, gid_t gid) {
     itoa(uid, giduid + i);
 }
 
+void
+writepass(const char* pass) {
+    int fd = open("/etc/shadow", O_WRONLY | O_CREAT | O_APPEND);
+    const char salt[20] = {"qwertyuiopasdfghjkl"};
+    char hash[20] = {0};
+    pkcs5_pbkdf2((uint8_t *)pass, strlen(pass), (uint8_t *)salt, 20, (uint8_t *)hash, 20, 1024);
+    fprintf(fd, "%s:$0$:%s$%s:\n", user.u_comment, salt, hash);
+    close(fd);
+}
+
 /*
  * write or update userinfo to /etc/passwd
  */
 void
 useradd() {
     int fd = open("/etc/passwd", O_WRONLY | O_CREAT | O_APPEND);
-    fprintf(fd, "%s:%s:%d:%d::%s:%s\n", user.u_comment, user.u_password, user.u_uid,
+    fprintf(fd, "%s:%s:%d:%d::%s:%s\n", user.u_comment, "x", user.u_uid,
             user.u_primgrp, user.u_home, user.u_shell);
     close(fd);
+    writepass(user.u_password);
     int r;
     r = spawnl("/mkdir", "/mkdir", user.u_home, NULL);
     if (r < 0) {
