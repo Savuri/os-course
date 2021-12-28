@@ -181,6 +181,19 @@ remove(const char *path) {
     return fsipc(FSREQ_REMOVE, NULL);
 }
 
+/*
+ * Need path to be opened.
+ * 0 - success
+ * <0 - error
+ */
+int
+set_child_cred(envid_t child, int fd) {
+    fsipcbuf.set_child_cred.req_fileid = fd;
+    fsipcbuf.set_child_cred.req_envid = child;
+
+    return fsipc(FSREQ_SET_CHILD_CRED, NULL);
+}
+
 /* Flush the file descriptor.  After this the fileid is invalid.
  *
  * This function is called by fd_close.  fd_close will take care of

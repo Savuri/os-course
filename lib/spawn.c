@@ -1,5 +1,6 @@
 #include <inc/lib.h>
 #include <inc/elf.h>
+#include <inc/spawn.h>
 
 #define UTEMP2USTACK(addr) ((void *)(addr) + (USER_STACK_TOP - USER_STACK_SIZE) - UTEMP)
 
@@ -104,6 +105,7 @@ spawn(const char *prog, const char **argv) {
     if ((int)(res = sys_exofork()) < 0) goto error2;
     envid_t child = res;
 
+    set_child_cred(res, fd);
     /* Set up trap frame, including initial stack. */
     struct Trapframe child_tf = envs[ENVX(child)].env_tf;
     child_tf.tf_rip = elf->e_entry;

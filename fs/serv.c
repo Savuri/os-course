@@ -347,6 +347,37 @@ serve_chgrp(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
     return file_chgrp(req->req_path, req->req_gid, ucred);
 }
 
+int
+serve_set_child_cred(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred) {
+    struct Fsreq_set_child_cred *req = &ipc->set_child_cred;
+    struct OpenFile *o;
+    int r;
+
+    if (debug) cprintf("serve_set_child_cred %08x %08x %08x\n",
+                envid, req->req_fileid, req->req_envid);
+
+    if (envs[ENVX(envid)].env_parent_id != envid) return -E_INVAL;
+
+    if ((r = openfile_lookup(envid, req->req_fileid, &o)) < 0)
+        return r;
+
+    if ((o->o_fd->fd_omode & O_ACCMODE) != O_EXEC) return -E_ACCES;
+
+    uid_t uid = ucred->cr_uid;
+    gid_t gid = ucred->cr_gid;
+
+    if (o->o_file->f_cred.fc_permission & S_ISUID) {
+        uid = o->o_file->f_cred.fc_uid;
+    }
+
+    if (o->o_file->f_cred.fc_permission & S_ISGID) {
+        gid = o->o_file->f_cred.fc_gid;
+    }
+
+    return sys_fssetcred(req->req_envid, uid, gid);
+}
+
+
 typedef int (*fshandler)(envid_t envid, union Fsipc *req, const struct Ucred *ucred);
 
 fshandler handlers[] = {
@@ -362,7 +393,8 @@ fshandler handlers[] = {
         [FSREQ_CHMOD] = serve_chmod,
         [FSREQ_CHOWN] = serve_chown,
         [FSREQ_CHGRP] = serve_chgrp,
-        [FSREQ_ACCESSDIR] = serve_accessdir};
+        [FSREQ_ACCESSDIR] = serve_accessdir,
+        [FSREQ_SET_CHILD_CRED] = serve_set_child_cred};
 #define NHANDLERS (sizeof(handlers) / sizeof(handlers[0]))
 
 void

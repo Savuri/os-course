@@ -5,7 +5,9 @@
 
 #include <inc/types.h>
 #include <inc/mmu.h>
+//#include <inc/env.h>
 
+typedef int32_t envid_t;
 typedef uint32_t blockno_t;
 
 /* File nodes (both in-memory and on-disk) */
@@ -110,7 +112,8 @@ enum {
     FSREQ_CHMOD,
     FSREQ_CHOWN,
     FSREQ_CHGRP,
-    FSREQ_ACCESSDIR
+    FSREQ_ACCESSDIR,
+    FSREQ_SET_CHILD_CRED,
 };
 
 union Fsipc {
@@ -164,6 +167,10 @@ union Fsipc {
     struct Fsreq_accessdir {
         char req_path[MAXPATHLEN];
     } accessdir;
+    struct Fsreq_set_child_cred {
+        int req_fileid;
+        envid_t req_envid;
+    } set_child_cred;
     /* Ensure Fsipc is one page */
     char _pad[PAGE_SIZE];
 };
