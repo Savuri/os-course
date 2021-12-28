@@ -31,7 +31,8 @@ LIB_SRCFILES :=		$(LIB_SRCFILES) \
 			lib/user.c \
 			lib/sha1.c \
 			lib/hmac.c \
-			lib/crypt.c
+			lib/crypt.c \
+			lib/base64.c
 
 LIB_SRCFILES :=		$(LIB_SRCFILES) \
 			lib/vsyscall.c

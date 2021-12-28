@@ -3,7 +3,7 @@
 static const char *file_name = "file";
 // static const char *dir_name = "dir";
 
-void 
+void
 umain(int argc, char *argv[]) {
     if (sys_geteuid()) {
         cprintf("ERROR: This test should be run by root");
@@ -20,9 +20,16 @@ umain(int argc, char *argv[]) {
     }
 
     int fd;
-    if ((fd = open(file_name, O_CREAT))) {
+    if ((fd = open(file_name, O_CREAT)) < 0) {
         cprintf("create %s fail: %i\n", file_name, fd);
+        return;
     }
-    close(fd);
 
+    if (close(fd) < 0) {
+        cprintf("close %s fail: %i\n", file_name, fd);
+        return;
+    }
+
+
+    cprintf("OK\n");
 }

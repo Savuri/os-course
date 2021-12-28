@@ -735,7 +735,7 @@ syscall(uintptr_t syscallno, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t
         return sys_setenvcurpath((const char*)a1);
     case SYS_fssetcred:
         return sys_fssetcred(a1, a2, a3);
-    default : cprintf("Unexpected in syscall\n");
+    default: cprintf("Unexpected in syscall\n");
     }
 
     return -E_NO_SYS;
