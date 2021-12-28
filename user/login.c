@@ -1,5 +1,7 @@
 #include <inc/lib.h>
 #include <user/user.h>
+#include <inc/crypt.h>
+#include <inc/base64.h>
 
 #define ETC_SHADOW "etc/shadow"
 #define ETC_PASSWD "etc/passwd"
@@ -14,7 +16,18 @@ typedef struct passwd_t {
     char *shell;
 } passwd_t;
 
+
+typedef struct shadow_t {
+    char *name;
+    int type;
+    char *salt;
+    char *hash;
+} shadow_t;
+
 char nbuf[NBUFSIZ + 1];
+char passbuf[NBUFSIZ + 1];
+char hash[20 + 1];
+char base64[32 + 1];
 
 int
 parseline(passwd_t *passwd, char *buf) {
@@ -70,6 +83,79 @@ parseline(passwd_t *passwd, char *buf) {
 }
 
 int
+parse_shadow_entry(char *buf, shadow_t *shadow) {
+    int i = 0;
+
+    shadow->name = buf;
+    for (i = 0; buf[i] != ':'; i++)
+        if (buf[i] == '\0')
+            return -1;
+    buf[i] = '\0';
+    i++;
+    if (buf[i] != '$')
+        return -1;
+    i++;
+    if (buf[i] == '\0')
+        return -1;
+    shadow->type = buf[i] - '0';
+    i++;
+    if (buf[i] != '$')
+        return -1;
+    i++;
+    shadow->salt = buf + i;
+    for (; buf[i] != '$'; i++)
+        if (buf[i] == '\0')
+            return -1;
+    buf[i] = '\0';
+    i++;
+    shadow->hash = buf + i;
+    for (; buf[i] != ':'; i++)
+        if (buf[i] == '\0')
+            return 0;
+    buf[i] = '\0';
+    return 0;
+}
+
+int
+checkpassword(const char login[], const char password[], passwd_t *passwd) {
+    shadow_t shadow;
+    int f, res;
+
+    f = open(ETC_SHADOW, O_RDONLY);
+    if (f < 0) {
+        printf("Can't open " ETC_SHADOW ": %i\n", f);
+        return f;
+    }
+    for (;;) {
+        res = getline(f, passbuf, NBUFSIZ);
+        if (res == 0) {
+            res = -3;
+            break;
+        }
+        res = parse_shadow_entry(passbuf, &shadow);
+        if (res < 0) {
+            return -1;
+        }
+        if (!strcmp(login, shadow.name)) {
+            res = pkcs5_pbkdf2((uint8_t *)password, strlen(password),
+                               (uint8_t *)shadow.salt, strlen(shadow.salt),
+                               (uint8_t *)hash, 20,
+                               1024);
+            if (res < 0)
+                return res;
+            bintob64(base64, hash, strlen(hash));
+            res = strcmp(base64, shadow.hash) ? -4 : 1;
+            break;
+        }
+    }
+    memset(passbuf, 0, sizeof(passbuf));
+    memset(base64, 0, sizeof(base64));
+    memset(hash, 0, sizeof(hash));
+    close(f);
+    return res;
+}
+
+int
 authcheck(char login[], char password[], passwd_t *passwd) {
     int f, res;
 
@@ -88,7 +174,8 @@ authcheck(char login[], char password[], passwd_t *passwd) {
         if (res < 0)
             break;
         if (!strcmp(login, passwd->name)) {
-            res = strcmp(password, passwd->password) ? -1 : 1;
+            res = checkpassword(login, password, passwd);
+            // res = strcmp(password, passwd->password) ? -1 : 1;
             break;
         }
     }
