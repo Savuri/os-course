@@ -187,8 +187,14 @@ remove(const char *path) {
  * <0 - error
  */
 int
-set_child_cred(envid_t child, int fd) {
-    fsipcbuf.set_child_cred.req_fileid = fd;
+set_child_cred(envid_t child, int fdnum) {
+    struct Fd *fd;
+    int res;
+
+    if ((res = fd_lookup(fdnum, &fd)) < 0) return res;
+
+
+    fsipcbuf.set_child_cred.req_fileid = fd->fd_file.id;
     fsipcbuf.set_child_cred.req_envid = child;
 
     return fsipc(FSREQ_SET_CHILD_CRED, NULL);

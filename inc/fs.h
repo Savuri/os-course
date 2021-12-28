@@ -5,7 +5,6 @@
 
 #include <inc/types.h>
 #include <inc/mmu.h>
-//#include <inc/env.h>
 
 typedef int32_t envid_t;
 typedef uint32_t blockno_t;

@@ -104,8 +104,9 @@ spawn(const char *prog, const char **argv) {
     /* Create new child environment */
     if ((int)(res = sys_exofork()) < 0) goto error2;
     envid_t child = res;
-
-    set_child_cred(res, fd);
+    if ((res =  set_child_cred(res, fd)) < 0) {
+        cprintf("spawn:suid guid %i", res);
+    }
     /* Set up trap frame, including initial stack. */
     struct Trapframe child_tf = envs[ENVX(child)].env_tf;
     child_tf.tf_rip = elf->e_entry;

@@ -125,10 +125,6 @@ KERN_BINFILES :=	user/hello \
 			user/userdel \
 			user/rm \
 			user/mkdir \
-			user/seteuid \
-			user/setuid \
-			user/setgid \
-			user/setegid \
 			user/testfsrwonly \
 			user/testchdir \
 			user/testfscreate \
@@ -136,7 +132,8 @@ KERN_BINFILES :=	user/hello \
 			user/groupdel \
 			user/chmod \
 			user/chown \
-			user/groupmod
+			user/groupmod \
+            user/print_creds
 
 KERN_BINFILES := $(patsubst %, $(OBJDIR)/%, $(KERN_BINFILES))
 endif
