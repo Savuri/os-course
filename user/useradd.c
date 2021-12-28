@@ -1,6 +1,8 @@
 #include <inc/lib.h>
 #include <user/user.h>
 #include <inc/string.h>
+#include <inc/crypt.h>
+#include <inc/base64.h>
 
 int flag[256];
 int uids[UID_MAX];
@@ -122,15 +124,46 @@ makearg(char* giduid, uid_t uid, gid_t gid) {
     itoa(uid, giduid + i);
 }
 
+void
+writepass(const char* pass) {
+    int fd = open("/etc/shadow", O_WRONLY | O_CREAT | O_APPEND);
+    if (fd < 0) {
+        exit();
+    }
+    char salt[20] = {"qqqqqqqqqqqqqqqqqqq\0"};
+    int i = 0;
+    printf("Enter salt for hash\n");
+    while(1) {
+        salt[i] = getchar();
+        if(salt[i] == '\n' || salt[i] == '\r')
+            break;
+        if(salt[i] <= 0)
+            break;
+        i++;
+        if(i >= 19)
+            break;
+    }
+    salt[i] = 0;
+    char hash[20] = {0};
+    pkcs5_pbkdf2((uint8_t *)pass, strlen(pass), (const uint8_t *)salt, 20, (uint8_t *)hash, 20, 1024);
+    char b64hash[33];
+    bintob64(b64hash, hash, strlen(hash));
+    fprintf(fd, "%s:$0$:%s$%s:\n", user.u_comment, salt, b64hash);
+    close(fd);
+}
+
 /*
  * write or update userinfo to /etc/passwd
  */
 void
 useradd() {
     int fd = open("/etc/passwd", O_WRONLY | O_CREAT | O_APPEND);
-    fprintf(fd, "%s:%s:%d:%d::%s:%s\n", user.u_comment, user.u_password, user.u_uid,
+    if(fd < 0)
+        exit();
+    fprintf(fd, "%s:%s:%d:%d::%s:%s\n", user.u_comment, "x", user.u_uid,
             user.u_primgrp, user.u_home, user.u_shell);
     close(fd);
+    writepass(user.u_password);
     int r;
     r = spawnl("/mkdir", "/mkdir", user.u_home, NULL);
     if (r < 0) {
@@ -256,7 +289,8 @@ namecheck(int argc, char** argv) {
         int i;
         for (i = 0; buf[i] != ':'; i++)
             ;
-        if (!strncmp(argv[argc - 1], buf, i)) {
+
+        if (!strncmp(argv[argc - 1], buf, i) && strlen(argv[argc - 1]) == i) {
             printf("Username is already in user\n");
             exit();
         }
