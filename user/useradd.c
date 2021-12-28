@@ -127,9 +127,22 @@ makearg(char* giduid, uid_t uid, gid_t gid) {
 void
 writepass(const char* pass) {
     int fd = open("/etc/shadow", O_WRONLY | O_CREAT | O_APPEND);
-    const char salt[20] = {"qwertyuiopasdfghjkl"};
+    char salt[20] = {"qqqqqqqqqqqqqqqqqqq\0"};
+    int i = 0;
+    printf("Enter salt for hash\n");
+    while(1) {
+        salt[i] = getchar();
+        if(salt[i] == '\n' || salt[i] == '\r')
+            break;
+        if(salt[i] <= 0)
+            break;
+        i++;
+        if(i >= 19)
+            break;
+    }
+    salt[i] = 0;
     char hash[20] = {0};
-    pkcs5_pbkdf2((uint8_t *)pass, strlen(pass), (uint8_t *)salt, 20, (uint8_t *)hash, 20, 1024);
+    pkcs5_pbkdf2((uint8_t *)pass, strlen(pass), (const uint8_t *)salt, 20, (uint8_t *)hash, 20, 1024);
     fprintf(fd, "%s:$0$:%s$%s:\n", user.u_comment, salt, hash);
     close(fd);
 }
