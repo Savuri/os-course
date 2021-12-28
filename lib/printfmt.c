@@ -41,6 +41,7 @@ static const char *const error_string[MAXERROR] = {
         [E_PERM] = "operation not permitted",
         [E_NOT_EMPTY] = "directory is not empty",
         [E_ACCES] = "permission denied",
+        [E_IS_DIR] = "file is directory",
 };
 
 /*

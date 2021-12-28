@@ -422,14 +422,14 @@ file_create(const char *path, struct File **pf, int type, const struct Ucred *uc
     int res;
     struct File *dir, *filp;
 
-    if (!(res = walk_path(path, &dir, &filp, name, ucred))) return res;
+    if (!(res = walk_path(path, &dir, &filp, name, ucred))) return -E_FILE_EXISTS;
     if (res != -E_NOT_FOUND || dir == 0) return res;
-    if ((res = dir_alloc_file(dir, &filp)) < 0) return res;
-
 
     if ((res = access(dir->f_type, dir->f_cred, WRITE, ucred)) != 0) {
         return res;
     }
+
+    if ((res = dir_alloc_file(dir, &filp)) < 0) return res;
 
     strcpy(filp->f_name, name);
     filp->parent = dir;
@@ -591,13 +591,14 @@ file_remove(const char *path, const struct Ucred *ucred) {
         return ret;
     }
 
-    assert(strcmp(rm_file->f_name, "/") != 0);
 
     if ((ret = access(dir->f_type, dir->f_cred, WRITE, ucred)) < 0) {
         return ret;
     }
 
-    // to delete a file, no permission checking of the file itself is needed.
+    if (!strcmp(rm_file->f_name, "/")) {
+        return -E_ACCES;
+    }
 
     if (rm_file->f_type == FTYPE_DIR) {
         if (rm_file->f_size != 0) {
