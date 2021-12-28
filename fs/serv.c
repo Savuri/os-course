@@ -374,7 +374,11 @@ serve_set_child_cred(envid_t envid, union Fsipc *ipc, const struct Ucred *ucred)
         gid = o->o_file->f_cred.fc_gid;
     }
 
-    return sys_fssetcred(req->req_envid, uid, gid);
+    if (o->o_file->f_cred.fc_permission & S_ISGID || o->o_file->f_cred.fc_permission & S_ISUID) {
+        return sys_fssetcred(req->req_envid, uid, gid);
+    }
+
+    return 0;
 }
 
 
