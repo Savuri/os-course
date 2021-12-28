@@ -165,11 +165,6 @@ useradd() {
     close(fd);
     writepass(user.u_password);
     int r;
-    r = spawnl("/mkdir", "/mkdir", user.u_home, NULL);
-    if (r < 0) {
-        printf("Incorrect HOMEPATH\n");
-        exit();
-    }
     if (r >= 0)
         wait(r);
     char giduid[10];
@@ -188,11 +183,14 @@ useradd() {
     r = spawnl("/chown", "/chown", giduid, user.u_home, NULL);
     if (r >= 0)
         wait(r);
+    r = spawnl("/chmod", "/chmod", "0755", user.u_home, NULL);
+    if (r >= 0)
+        wait(r);
 }
 
 void
 usage() {
-    printf("usage:useradd [-g GROUP] [-b HOMEPATH] [-s SHELLPATH] [-p PASSWORD] LOGIN\n");
+    printf("usage:useradd [-u UID] [-g GID] [-b HOMEPATH] [-s SHELLPATH] [-p PASSWORD] LOGIN\n");
     exit();
 }
 
@@ -223,29 +221,33 @@ fillargs(int argc, char** argv) {
             if (!res) continue;
             if (i + 1 == argc || argv[i + 1][0] == '-') return 1;
             if (res == 'u') {
+                flag['u'] = 1;
                 uid_t uid = (uid_t)strtol(argv[i + 1], NULL, 10);
                 if (uid > 0 && uid < UID_MAX) {
                     user.u_uid = uid;
                 } else {
-                    printf("UID should be > 0 and < %d", UID_MAX);
+                    printf("UID should be > 0 and < %d\n", UID_MAX);
                     exit();
                 }
                 if (isuserexist(uid)) {
                     printf("Uid is already in use\n");
                     exit();
                 }
-            }
+            } else
             if (res == 'p') {
+                flag['p'] = 1;
                 int len = strlen(argv[i + 1]) > PASSLEN_MAX ? PASSLEN_MAX : strlen(argv[i + 1]);
                 strncpy(user.u_password, argv[i + 1], len);
                 user.u_password[len] = 0;
-            }
+            } else
             if (res == 's') {
+                flag['s'] = 1;
                 int len = strlen(argv[i + 1]) > PATHLEN_MAX ? PATHLEN_MAX : strlen(argv[i + 1]);
                 strncpy(user.u_shell, argv[i + 1], len);
                 user.u_shell[len] = 0;
-            }
+            } else
             if (res == 'b') {
+                flag['b'] = 1;
                 int len = strlen(argv[i + 1]) > PATHLEN_MAX ? PATHLEN_MAX : strlen(argv[i + 1]);
                 strncpy(user.u_home, argv[i + 1], len);
                 user.u_home[len] = 0;
@@ -253,16 +255,19 @@ fillargs(int argc, char** argv) {
                     printf("Homepath could not be /\n");
                     exit();
                 }
-            }
+            } else
             if (res == 'g') {
+                flag['g'] = 1;
                 gid_t gid = (gid_t)strtol(argv[i + 1], NULL, 10);
                 if (gid > 0 && gid < UID_MAX)
                     user.u_primgrp = gid;
                 else {
-                    printf("GID should be > 0 and < %d", UID_MAX);
+                    printf("GID should be > 0 and < %d\n", UID_MAX);
                     exit();
                 }
             }
+            else
+                usage();
         }
     }
     return 0;
@@ -298,32 +303,24 @@ namecheck(int argc, char** argv) {
     close(fd);
 }
 
+int
+countflags() {
+    return flag['p'] + flag['s'] + flag['u'] + flag['g'] + flag['b'];
+}
+
 void
 umain(int argc, char** argv) {
-    int i;
-    struct Argstate args;
+    int oldargc = argc;
     namecheck(argc, argv);
     fillname(argc, argv);
     userinit();
     if (fillargs(argc, argv))
         usage();
-    argstart(&argc, argv, &args);
     if (argc == 1) {
         usage();
         return;
     }
-    while ((i = argnext(&args)) >= 0) {
-        switch (i) {
-        case 'p':
-        case 'g':
-        case 'b':
-        case 's':
-        case 'u':
-            flag[i]++;
-            break;
-        default:
-            usage();
-        }
-    }
+    if ((oldargc - 2) != 2 * (oldargc - countflags() - 2))
+        usage();
     useradd();
 }
