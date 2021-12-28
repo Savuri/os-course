@@ -127,6 +127,9 @@ makearg(char* giduid, uid_t uid, gid_t gid) {
 void
 writepass(const char* pass) {
     int fd = open("/etc/shadow", O_WRONLY | O_CREAT | O_APPEND);
+    if (fd < 0) {
+        exit();
+    }
     char salt[20] = {"qqqqqqqqqqqqqqqqqqq\0"};
     int i = 0;
     printf("Enter salt for hash\n");
@@ -153,6 +156,8 @@ writepass(const char* pass) {
 void
 useradd() {
     int fd = open("/etc/passwd", O_WRONLY | O_CREAT | O_APPEND);
+    if(fd < 0)
+        exit();
     fprintf(fd, "%s:%s:%d:%d::%s:%s\n", user.u_comment, "x", user.u_uid,
             user.u_primgrp, user.u_home, user.u_shell);
     close(fd);
