@@ -19,15 +19,37 @@ umain(int argc, char *argv[]) {
         return;
     }
 
-    int fd;
-    if ((fd = open(file_name, O_CREAT)) < 0) {
-        cprintf("create %s fail: %i\n", file_name, fd);
-        return;
+    int fd1;
+    if ((fd1 = open(file_name, O_CREAT)) < 0) {
+        cprintf("create %s fail: %d\n", file_name, fd1);
+        // return;
+    } else {
+        cprintf("%d\n", fd1);
     }
 
-    if (close(fd) < 0) {
-        cprintf("close %s fail: %i\n", file_name, fd);
-        return;
+    int fd2;
+    if ((fd2 = open(file_name, O_RDONLY)) < 0) {
+        cprintf("create %s fail: %d\n", file_name, fd2);
+        // return;
+    } else {
+        cprintf("%d\n", fd2);
+    }
+
+    // int res;
+    // if ((res = remove(file_name))) {
+    //     cprintf("oops: we managed to remove open file\n");
+    // }
+
+    if (close(fd1) < 0) {
+        cprintf("close %s fail: %d\n", file_name, fd1);
+    } else {
+        cprintf("%d\n", fd1);
+    }
+
+    if (close(fd2) < 0) {
+        cprintf("close %s fail: %d\n", file_name, fd2);
+    } else {
+        cprintf("%d\n", fd2);
     }
 
 

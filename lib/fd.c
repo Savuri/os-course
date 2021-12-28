@@ -126,6 +126,10 @@ dev_lookup(int dev_id, struct Dev **dev) {
     return -E_INVAL;
 }
 
+/*
+ * 0 -- on succes
+ * <0 -- on error
+ */
 int
 close(int fdnum) {
     struct Fd *fd;

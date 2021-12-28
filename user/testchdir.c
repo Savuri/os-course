@@ -83,5 +83,5 @@ umain(int argc, char **argv) {
     test_chdir(".", "/home/user");
     test_chdir("../..", "/");
     test_chdir("home", "/home");
-    test_chdir("../root", "/home"); // permission denied
+    test_chdir("/root", "/home"); // permission denied
 }

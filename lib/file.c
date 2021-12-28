@@ -167,6 +167,9 @@ chmod(const char *path, permission_t permission) {
     return fsipc(FSREQ_CHMOD, NULL);
 }
 
+/*
+ * 0 -- on success
+ */
 int
 remove(const char *path) {
     if (strlen(path) >= MAXPATHLEN) {
