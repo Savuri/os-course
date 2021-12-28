@@ -3,8 +3,8 @@
 #include <inc/crypt.h>
 #include <inc/base64.h>
 
-#define ETC_SHADOW "etc/shadow"
-#define ETC_PASSWD "etc/passwd"
+#define ETC_SHADOW "/etc/shadow"
+#define ETC_PASSWD "/etc/passwd"
 
 typedef struct passwd_t {
     char *name;
@@ -117,6 +117,18 @@ parse_shadow_entry(char *buf, shadow_t *shadow) {
 }
 
 int
+passcmp(char *input, char *src) {
+    int res = 0;
+    while (*src != '\0') {
+        if (*input != *src)
+            res = -1;
+        input++;
+        src++;
+    }
+    return res;
+}
+
+int
 checkpassword(const char login[], const char password[], passwd_t *passwd) {
     shadow_t shadow;
     int f, res;
@@ -144,7 +156,7 @@ checkpassword(const char login[], const char password[], passwd_t *passwd) {
             if (res < 0)
                 return res;
             bintob64(base64, hash, strlen(hash));
-            res = strcmp(base64, shadow.hash) ? -4 : 1;
+            res = passcmp(base64, shadow.hash) ? -4 : 1;
             break;
         }
     }
