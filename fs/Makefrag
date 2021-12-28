@@ -51,6 +51,7 @@ USERAPPS :=		$(OBJDIR)/user/init \
 			$(OBJDIR)/user/userdel \
 			$(OBJDIR)/user/testchdir \
 			$(OBJDIR)/user/testfscreate \
+			$(OBJDIR)/user/test1 \
 			$(OBJDIR)/user/groupadd \
 			$(OBJDIR)/user/groupdel \
 			$(OBJDIR)/user/chmod \
