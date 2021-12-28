@@ -144,11 +144,11 @@ writepass(const char* pass) {
             break;
     }
     salt[i] = 0;
-    char hash[20] = {0};
-    pkcs5_pbkdf2((uint8_t *)pass, strlen(pass), (const uint8_t *)salt, 20, (uint8_t *)hash, 20, 1024);
+    char hash[21] = {0};
+    pkcs5_pbkdf2((uint8_t *)pass, strlen(pass), (const uint8_t *)salt, strlen(salt), (uint8_t *)hash, 20, 1024);
     char b64hash[33];
     bintob64(b64hash, hash, strlen(hash));
-    fprintf(fd, "%s:$0$:%s$%s:\n", user.u_comment, salt, b64hash);
+    fprintf(fd, "%s:$0$%s$%s:\n", user.u_comment, salt, b64hash);
     close(fd);
 }
 
