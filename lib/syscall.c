@@ -196,3 +196,8 @@ int
 sys_setenvcurpath(const char *buf) {
     return syscall(SYS_setenvcurpath, 0, (uintptr_t)buf, 0, 0, 0, 0, 0);
 }
+
+int
+sys_fssetcred(envid_t envid, uid_t uid, gid_t gid) {
+    return syscall(SYS_fssetcred, 0, envid, uid, gid, 0, 0, 0);
+}
