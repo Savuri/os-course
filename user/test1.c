@@ -28,12 +28,20 @@ umain(int argc, char *argv[]) {
     }
 
     int fd2;
-    if ((fd2 = open(file_name, O_RDONLY)) < 0) {
+    if ((fd2 = open(file_name, O_CREAT)) < 0) {
         cprintf("create %s fail: %d\n", file_name, fd2);
         // return;
     } else {
         cprintf("%d\n", fd2);
     }
+
+    // int fd2;
+    // if ((fd2 = open(file_name, O_RDONLY)) < 0) {
+    //     cprintf("create %s fail: %d\n", file_name, fd2);
+    //     // return;
+    // } else {
+    //     cprintf("%d\n", fd2);
+    // }
 
     // int res;
     // if ((res = remove(file_name))) {

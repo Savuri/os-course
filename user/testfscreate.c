@@ -60,27 +60,39 @@ static void
 create_and_remove(const char *who) {
     int res;
     if (!(res = open(who, O_CREAT))) {
-        cprintf("%s: create file success || %i\n", who, res);
+        cprintf("%s: create file success: %d\n", who, res);
     } else {
-        cprintf("%s: create file fail || %i\n", who, res);
+        cprintf("%s: create file fail: %i\n", who, res);
+    }
+
+    if (!(res = close(res))) {
+        cprintf("%s: close file success: %d\n", who, res);
+    } else {
+        cprintf("%s: close file fail: %i\n", who, res);
     }
 
     if (!(res = remove(who))) {
-        cprintf("%s: remove file success || %i\n", who, res);
+        cprintf("%s: remove file success: %d\n", who, res);
     } else {
-        cprintf("%s: remove file fail || %i\n", who, res);
+        cprintf("%s: remove file fail: %i\n", who, res);
     }
 
     if (!(res = open(who, O_MKDIR))) {
-        cprintf("%s: create dir success || %i\n", who, res);
+        cprintf("%s: create dir success: %d\n", who, res);
     } else {
-        cprintf("%s: create dir fail || %i\n", who, res);
+        cprintf("%s: create dir fail: %i\n", who, res);
+    }
+
+    if (!(res = close(res))) {
+        cprintf("%s: close dir success: %d\n", who, res);
+    } else {
+        cprintf("%s: close dir fail: %i\n", who, res);
     }
 
     if (!(res = remove(who))) {
-        cprintf("%s: remove dir success || %i\n", who, res);
+        cprintf("%s: remove dir success: %d\n", who, res);
     } else {
-        cprintf("%s: remove dir fail || %i\n", who, res);
+        cprintf("%s: remove dir fail: %i\n", who, res);
     }
 }
 
@@ -88,6 +100,7 @@ static void
 set_creds(const char *who) {
     if (!strcmp(who, "owner")) {
         sys_seteuid(1000);
+        sys_setegid(1001);
     } else if (!strcmp(who, "group")) {
         sys_seteuid(1001);
         sys_setegid(1000);
