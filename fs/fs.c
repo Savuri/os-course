@@ -611,7 +611,6 @@ file_remove(const char *path, const struct Ucred *ucred) {
     }
 
     assert(dir->f_size != 0); // если правильно понимаю код то это так
-
     // move last block to free space (to keep actual f_size without segmentation)
     blockno_t nblock = dir->f_size / BLKSIZE;
     for (blockno_t i = nblock - 1; i >= 0; i--) {
@@ -625,7 +624,8 @@ file_remove(const char *path, const struct Ucred *ucred) {
             if (f[j].f_name[0] != '\0' || (i == 0 && j == 0)) {
                 memmove(rm_file, &f[j], sizeof(struct File));
                 f[j].f_name[0] = '\0';
-
+                file_flush(rm_file);
+                file_flush(&f[j]);
                 if (j == 0) {
                     *blockno = 0;
                     dir->f_size -= BLKSIZE;
@@ -635,6 +635,8 @@ file_remove(const char *path, const struct Ucred *ucred) {
             }
         }
     }
+
+    file_flush(dir);
 
     return 0;
 }
