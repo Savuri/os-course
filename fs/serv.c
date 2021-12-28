@@ -108,6 +108,10 @@ serve_open(envid_t envid, struct Fsreq_open *req,
     /* Create dir */
     if (req->req_omode & O_MKDIR) {
         if ((res = file_create(path, &f, FTYPE_DIR, ucred)) < 0) {
+            if (!(req->req_omode & O_EXCL) && res == -E_FILE_EXISTS) {
+                return 0;
+            }
+
             return res;
         }
 
