@@ -4,7 +4,7 @@
 
 void
 usage() {
-    printf("usage:chown UID FILEPATH\n");
+    printf("usage:chown UID:GID FILEPATH\n");
     exit();
 }
 

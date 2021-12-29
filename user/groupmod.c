@@ -26,7 +26,7 @@ groupmod() {
         int i = 0;
         while (buf[i] != ':')
             i++;
-        if (!strncmp(buf, gid, i)) {
+        if (!strncmp(buf, gid, i) && (strlen(buf) == strlen(gid))) {
             while (buf[i])
                 i++;
             buf[i] = ':';
