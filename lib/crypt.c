@@ -51,8 +51,8 @@ pkcs5_pbkdf2(const uint8_t *pass, size_t pass_len, const uint8_t *salt,
         memcpy(key, obuf, r);
         key += r;
         key_len -= r;
-    };
-    bzero(asalt, salt_len + 4);
+    }
+    bzero(asalt, sizeof(asalt));
     bzero(d1, sizeof(d1));
     bzero(d2, sizeof(d2));
     bzero(obuf, sizeof(obuf));
