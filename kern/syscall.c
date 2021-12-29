@@ -559,12 +559,13 @@ sys_setgroups(int ngroups, gid_t list[]) {
         return -E_PERM;
     if (ngroups > NGROUPS_MAX || ngroups < 0)
         return -E_INVAL;
-    if (list == NULL || ngroups == 0)
+    if (list == NULL || ngroups == 0) {
         cred->cr_ngroups = 0;
-    for (int i = 0; i < ngroups; i++) {
-        cred->cr_groups[i] = list[i];
+        return 0;
     }
     cred->cr_ngroups = ngroups;
+    for (int i = 0; i < ngroups; i++)
+        cred->cr_groups[i] = list[i];
     return 0;
 }
 
