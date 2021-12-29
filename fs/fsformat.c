@@ -229,6 +229,27 @@ writefile(struct Dir *dir, const char *name) {
 
     if (!strcmp(name, login)) {
         f->f_cred.fc_permission = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH | S_ISUID;
+    } else if (!strncmp(name, "obj/user/useradd", 17)) {
+        printf("Here\n");
+        f->f_cred.fc_permission = S_IWUSR | S_IRUSR | S_IXUSR;
+        f->f_cred.fc_uid = 0;
+        f->f_cred.fc_gid = 0;
+    } else if (!strncmp(name, "obj/user/userdel", 17)) {
+        f->f_cred.fc_permission = S_IWUSR | S_IRUSR | S_IXUSR;
+        f->f_cred.fc_uid = 0;
+        f->f_cred.fc_gid = 0;
+    } else if (!strncmp(name, "obj/user/groupmod", 17)) {
+        f->f_cred.fc_permission = S_IWUSR | S_IRUSR | S_IXUSR;
+        f->f_cred.fc_uid = 0;
+        f->f_cred.fc_gid = 0;
+    } else if (!strncmp(name, "obj/user/groupadd", 17)) {
+        f->f_cred.fc_permission = S_IWUSR | S_IRUSR | S_IXUSR;
+        f->f_cred.fc_uid = 0;
+        f->f_cred.fc_gid = 0;
+    } else if (!strncmp(name, "obj/user/groupdel", 17)) {
+        f->f_cred.fc_permission = S_IWUSR | S_IRUSR | S_IXUSR;
+        f->f_cred.fc_uid = 0;
+        f->f_cred.fc_gid = 0;
     } else if (!strncmp(name, "obj/", 4)) {
         f->f_cred.fc_permission = S_IRWXU | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH;
     } else if (!strcmp(name, shadow)) {
@@ -250,6 +271,26 @@ writefile(struct Dir *dir, const char *name) {
         f->f_cred.fc_permission = S_IWUSR | S_IWGRP | S_IWOTH;
         f->f_cred.fc_uid = 1;
         f->f_cred.fc_gid = 1;
+    } else if (!strcmp(name, "fs/load/useradd")) {
+        f->f_cred.fc_permission = S_IWUSR;
+        f->f_cred.fc_uid = 0;
+        f->f_cred.fc_gid = 0;
+    } else if (!strcmp(name, "fs/load/userdel")) {
+        f->f_cred.fc_permission = S_IWUSR;
+        f->f_cred.fc_uid = 0;
+        f->f_cred.fc_gid = 0;
+    } else if (!strcmp(name, "fs/load/groupmod")) {
+        f->f_cred.fc_permission = S_IWUSR;
+        f->f_cred.fc_uid = 0;
+        f->f_cred.fc_gid = 0;
+    } else if (!strcmp(name, "fs/load/groupadd")) {
+        f->f_cred.fc_permission = S_IWUSR;
+        f->f_cred.fc_uid = 0;
+        f->f_cred.fc_gid = 0;
+    } else if (!strcmp(name, "fs/load/groupdel")) {
+        f->f_cred.fc_permission = S_IWUSR;
+        f->f_cred.fc_uid = 0;
+        f->f_cred.fc_gid = 0;
     }
 
     start = alloc(st.st_size);
