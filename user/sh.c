@@ -301,8 +301,10 @@ umain(int argc, char **argv) {
 
     while (1) {
         char *buf;
-
-        buf = readline(interactive ? "$ " : NULL);
+        char prompt[] = "$ ";
+        if (!sys_geteuid())
+            prompt[0] = '#';
+        buf = readline(interactive ? prompt : NULL);
         if (buf == NULL) {
             if (debug) cprintf("EXITING\n");
             exit(); /* end of file */
