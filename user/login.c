@@ -200,7 +200,7 @@ getloginname(char *nbuf) {
     int ch;
 
     for (;;) {
-        printf("login: ");
+        printf("\nlogin: ");
         p = nbuf;
         for (;;) {
             ch = getchar();
