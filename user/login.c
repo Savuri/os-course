@@ -118,12 +118,9 @@ parse_shadow_entry(char *buf, shadow_t *shadow) {
 
 int
 passcmp(char *input, char *src) {
-    int res = 0, junk;
+    int res = 0;
     while (*src != '\0') {
-        if (*input != *src)
-            res = -1;
-        else
-            junk = -1;
+        res |= *input ^ *src;
         input++;
         src++;
     }
