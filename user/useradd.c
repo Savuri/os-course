@@ -167,7 +167,7 @@ useradd() {
     int r;
     // r = spawnl("/mkdir", "/mkdir", user.u_home, NULL);
     r = open(user.u_home, O_RDONLY);
-    if(r >= 0) {
+    if (r >= 0) {
         printf("Incorrect HOMEPATH\n");
         exit();
     }

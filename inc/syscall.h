@@ -30,6 +30,7 @@ enum {
     SYS_getenvcurpath,
     SYS_setenvcurpath,
     SYS_fssetcred,
+    SYS_setgroups,
     NSYSCALLS
 };
 

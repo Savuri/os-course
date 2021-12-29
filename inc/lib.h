@@ -102,6 +102,7 @@ int sys_seteuid(uid_t uid);
 int sys_setegid(gid_t gid);
 uid_t sys_geteuid();
 gid_t sys_getegid();
+int sys_setgroups(int ngroups, gid_t list[]);
 int sys_fssetcred(envid_t res, uid_t uid, gid_t gid);
 
 int sys_getenvcurpath(char buf[MAXPATHLEN], envid_t envid);

@@ -147,6 +147,12 @@ sys_gettime(void) {
     return syscall(SYS_gettime, 0, 0, 0, 0, 0, 0, 0);
 }
 
+
+int
+sys_setgroups(int ngroups, gid_t list[]) {
+    return syscall(SYS_setgroups, 0, ngroups, (uintptr_t)list, 0, 0, 0, 0);
+}
+
 int
 sys_setuid(uid_t uid) {
     return syscall(SYS_setuid, 0, uid, 0, 0, 0, 0, 0);

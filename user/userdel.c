@@ -32,7 +32,7 @@ isdeluser(char* name) {
         return 0;
     char home[PATHLEN_MAX];
     home[0] = '/';
-    if (r) {    
+    if (r) {
         gethome(home);
         int r = spawnl("/rm", "/rm", home, NULL);
         if (r >= 0)

@@ -98,6 +98,9 @@ sys_exofork(void) {
     env->env_tf = curenv->env_tf;
     env->env_tf.tf_regs.reg_rax = 0;
     env->env_ucred = curenv->env_ucred;
+    for (int i = 0; i < env->env_ucred.cr_ngroups; i++) {
+        env->env_ucred.cr_groups[i] = curenv->env_ucred.cr_groups[i];
+    }
     strncpy(env->current_path, curenv->current_path, MAXPATHLEN);
     return env->env_id;
 }
@@ -547,6 +550,25 @@ sys_setgid(gid_t gid) {
     return 0;
 }
 
+static int
+sys_setgroups(int ngroups, gid_t list[]) {
+    struct Env* env = curenv;
+    struct Ucred* cred = &(env->env_ucred);
+
+    if (!is_suser_cred(cred))
+        return -E_PERM;
+    if (ngroups > NGROUPS_MAX || ngroups < 0)
+        return -E_INVAL;
+    if (list == NULL || ngroups == 0) {
+        cred->cr_ngroups = 0;
+        return 0;
+    }
+    cred->cr_ngroups = ngroups;
+    for (int i = 0; i < ngroups; i++)
+        cred->cr_groups[i] = list[i];
+    return 0;
+}
+
 /*
  *  Returns 0 on success, -E_PERM on error
  */
@@ -733,6 +755,8 @@ syscall(uintptr_t syscallno, uintptr_t a1, uintptr_t a2, uintptr_t a3, uintptr_t
         return sys_getenvcurpath((char*)a1, (envid_t)a2);
     case SYS_setenvcurpath:
         return sys_setenvcurpath((const char*)a1);
+    case SYS_setgroups:
+        return sys_setgroups((int)a1, (gid_t*)a2);
     case SYS_fssetcred:
         return sys_fssetcred(a1, a2, a3);
     default: cprintf("Unexpected in syscall\n");
