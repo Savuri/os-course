@@ -16,6 +16,7 @@ typedef struct passwd_t {
     char *shell;
 } passwd_t;
 
+gid_t groups[NGROUPS_MAX];
 
 typedef struct shadow_t {
     char *name;
@@ -28,6 +29,7 @@ char nbuf[NBUFSIZ + 1];
 char passbuf[NBUFSIZ + 1];
 char hash[20 + 1];
 char base64[32 + 1];
+int cnt = 0;
 
 int
 parseline(passwd_t *passwd, char *buf) {
@@ -260,6 +262,38 @@ getpassword(char *nbuf) {
     printf("\n");
 }
 
+int 
+initgroups(uid_t userid) {
+    int n;
+    int i = 0;
+    int fd = open("/etc/group", O_RDONLY);
+    if (fd < 0)
+        return 0;
+    while ((n = getline(fd, nbuf, NBUFSIZ)) > 0) {
+        i = 0;
+        char gid[5] = {0};
+        while(nbuf[i] != ':')
+            i++;
+        strncpy(gid, nbuf, i);
+        i++;
+        while(nbuf[i]){
+            uid_t uid;
+            int l = i;
+            while(nbuf[i] != ':')
+                i++;
+            nbuf[i] = 0;
+            uid = strtol(nbuf+l, NULL, 10);
+            if(uid == userid) {
+                if(cnt > 31)
+                    return 31;
+                groups[cnt] = strtol(gid, NULL, 10);
+                cnt++;
+            }    
+        }
+    }
+    close(fd);
+    return cnt;
+}
 
 void
 umain(int argc, char *argv[]) {
@@ -285,7 +319,8 @@ umain(int argc, char *argv[]) {
         printf("\nLogin failed.\n");
     }
     printf("\n");
-
+    initgroups(passwd.uid);
+    sys_setgroups(cnt, groups);
     sys_setgid(passwd.gid);
     /* change uid last, so we have privileges to set up everything */
     sys_setuid(passwd.uid);

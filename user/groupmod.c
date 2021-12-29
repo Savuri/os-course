@@ -26,7 +26,7 @@ groupmod() {
         int i = 0;
         while (buf[i] != ':')
             i++;
-        if (!strncmp(buf, gid, i)) {
+        if (!strncmp(buf, gid, i) && (strlen(buf) == strlen(gid))) {
             while (buf[i])
                 i++;
             buf[i] = ':';
@@ -66,7 +66,7 @@ umain(int argc, char** argv) {
     }
     if (!isgroupexist(strtol(gid, NULL, 10))) {
         int fd = open("/etc/group", O_WRONLY | O_CREAT | O_APPEND);
-        fprintf(fd, "%s:%s\n", gid, uid);
+        fprintf(fd, "%s:%s:\n", gid, uid);
         close(fd);
     } else
         groupmod();
