@@ -30,14 +30,19 @@ isdeluser(char* name) {
         ;
     if (strncmp(name, buf, i))
         return 0;
-    if (r) {
-        char home[PATHLEN_MAX];
-        home[0] = '/';
+    char home[PATHLEN_MAX];
+    home[0] = '/';
+    if (r) {    
         gethome(home);
-        int r = spawnl("rm", "/rm", home, NULL);
+        int r = spawnl("/rm", "/rm", home, NULL);
         if (r >= 0)
             wait(r);
     }
+    else /*{
+        int r = spawnl("/chown", "/chown", "0:0", home, NULL);
+        if (r >= 0)
+            wait(r);
+    }*/
     return 1;
 }
 
