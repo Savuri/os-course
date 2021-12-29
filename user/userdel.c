@@ -38,7 +38,7 @@ isdeluser(char* name) {
         if (r >= 0)
             wait(r);
     }
-    else /*{
+    /*else {
         int r = spawnl("/chown", "/chown", "0:0", home, NULL);
         if (r >= 0)
             wait(r);
